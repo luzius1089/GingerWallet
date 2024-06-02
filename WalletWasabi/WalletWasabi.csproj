@@ -41,6 +41,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		<None Update="Legal\Assets\LegalDocumentsWw1.txt">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

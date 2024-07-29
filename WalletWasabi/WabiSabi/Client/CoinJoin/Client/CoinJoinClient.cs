@@ -675,6 +675,36 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
+	private async Task RecommendationAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset recommendationEndTime, CancellationToken cancellationToken)
+	{
+		var scheduledDates = recommendationEndTime.GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, MaximumRequestDelay);
+
+		var tasks = aliceClients.Zip(
+			scheduledDates,
+			async (aliceClient, scheduledDate) =>
+			{
+				var delay = scheduledDate - DateTimeOffset.UtcNow;
+				if (delay > TimeSpan.Zero)
+				{
+					await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+				}
+
+				try
+				{
+					await aliceClient.GetRecommendationAsync(cancellationToken).ConfigureAwait(false);
+				}
+				catch (Exception e)
+				{
+					// This cannot fail. Otherwise the whole conjoin process will be halted.
+					Logger.LogDebug(e.ToString());
+					Logger.LogInfo($"Failed to get recommendation with message {e.Message}. Ignoring...");
+				}
+			})
+			.ToImmutableArray();
+
+		await Task.WhenAll(tasks).ConfigureAwait(false);
+	}
+
 	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
 	{
 		return endTime.GetScheduledDates(howMany, startTime, maximumRequestDelay);
@@ -741,13 +771,17 @@ public class CoinJoinClient
 
 		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
-		var outputRegistrationEndTime = now + (remainingTime * 0.8); // 80% of the time.
+		var recommendationEndTime = now + (remainingTime * 0.1); // 10% of the time
+		var outputRegistrationEndTime = recommendationEndTime + (remainingTime * 0.7); // 70% of the time.
 		var readyToSignEndTime = outputRegistrationEndTime + (remainingTime * 0.2); // 20% of the time.
 
 		CoinJoinClientProgress.SafeInvoke(this, new EnteringOutputRegistrationPhase(roundState, outputRegistrationPhaseEndTime));
 
 		using CancellationTokenSource phaseTimeoutCts = new(remainingTime + ExtraPhaseTimeoutMargin);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
+		var combinedToken = linkedCts.Token;
+
+		await RecommendationAsync(registeredAliceClients, recommendationEndTime, combinedToken).ConfigureAwait(false);
 
 		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
 		var inputEffectiveValuesAndSizes = registeredAliceClients.Select(x => (x.EffectiveValue, x.SmartCoin.ScriptPubKey.EstimateInputVsize()));
@@ -764,7 +798,6 @@ public class CoinJoinClient
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
-		var combinedToken = linkedCts.Token;
 		try
 		{
 			// Re-issuances.

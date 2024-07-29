@@ -13,6 +13,7 @@ using WalletWasabi.Extensions;
 using System.Net.Http;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using System.Collections.Immutable;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
@@ -39,6 +40,8 @@ public class AliceClient
 		MaxVsizeAllocationPerAlice = roundParameters.MaxVsizeAllocationPerAlice;
 		ConfirmationTimeout = roundParameters.ConnectionConfirmationTimeout / 2;
 		IsCoordinationFeeExempted = isCoordinationFeeExempted;
+
+		Denomination = [];
 	}
 
 	public Guid AliceId { get; }
@@ -54,6 +57,8 @@ public class AliceClient
 	public bool IsCoordinationFeeExempted { get; }
 
 	public DateTimeOffset LastSuccessfulInputConnectionConfirmation { get; private set; } = DateTimeOffset.UtcNow;
+
+	public ImmutableSortedSet<Money> Denomination { get; private set; }
 
 	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 		RoundState roundState,
@@ -217,6 +222,12 @@ public class AliceClient
 	{
 		await ArenaClient.ReadyToSignAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
+	}
+
+	public async Task GetRecommendationAsync(CancellationToken cancellationToken)
+	{
+		var res = await ArenaClient.GetRecommendationAsync(new RoundRecommendationRequest(RoundId), cancellationToken).ConfigureAwait(false);
+		Denomination = res.Denomination ?? [];
 	}
 
 	public Money EffectiveValue => SmartCoin.EffectiveValue(FeeRate, IsCoordinationFeeExempted ? CoordinationFeeRate.Zero : CoordinationFeeRate);

@@ -21,6 +21,7 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.WabiSabi.Recommendation;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -675,13 +676,14 @@ public class CoinJoinClient
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	private async Task RecommendationAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset recommendationEndTime, CancellationToken cancellationToken)
+	private async Task<ImmutableSortedSet<Money>> RecommendationAsync(uint256 roundId, DateTimeOffset recommendationEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = recommendationEndTime.GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, MaximumRequestDelay);
+		var scheduledDates = recommendationEndTime.GetScheduledDates(Random.Shared.Next(1,4), DateTimeOffset.UtcNow, MaximumRequestDelay);
 
-		var tasks = aliceClients.Zip(
-			scheduledDates,
-			async (aliceClient, scheduledDate) =>
+		var arenaRequestHandler = new WabiSabiHttpApiClient(HttpClientFactory.NewHttpClientWithCircuitPerRequest());
+
+		var tasks = scheduledDates.Select(
+			async scheduledDate =>
 			{
 				var delay = scheduledDate - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
@@ -691,7 +693,9 @@ public class CoinJoinClient
 
 				try
 				{
-					await aliceClient.GetRecommendationAsync(cancellationToken).ConfigureAwait(false);
+					var result = await arenaRequestHandler.GetRecommendationAsync(new RoundRecommendationRequest(roundId), cancellationToken).ConfigureAwait(false);
+					return result.Denomination;
+
 				}
 				catch (Exception e)
 				{
@@ -699,10 +703,35 @@ public class CoinJoinClient
 					Logger.LogDebug(e.ToString());
 					Logger.LogInfo($"Failed to get recommendation with message {e.Message}. Ignoring...");
 				}
+				return [];
 			})
-			.ToImmutableArray();
+			.ToList();
 
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		ImmutableSortedSet<Money>? storedRecommendedDenominations = null;
+
+		do
+		{
+			var finishedTask = await Task.WhenAny(tasks).ConfigureAwait(false);
+			tasks.Remove(finishedTask);
+			ImmutableSortedSet<Money> recommendedDenominations = await finishedTask.ConfigureAwait(false);
+
+			if (storedRecommendedDenominations is null)
+			{
+				storedRecommendedDenominations = recommendedDenominations;
+			}
+			else
+			{
+				if (!recommendedDenominations.Equals(storedRecommendedDenominations))
+				{
+					throw new InvalidOperationException("Coordinator is not consistent with recommended denomination levels.");
+				}
+			}
+
+		} while (tasks.Count != 0);
+
+		// What happens if empty? Use the default?
+
+		return storedRecommendedDenominations ?? [];
 	}
 
 	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
@@ -781,7 +810,7 @@ public class CoinJoinClient
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 		var combinedToken = linkedCts.Token;
 
-		await RecommendationAsync(registeredAliceClients, recommendationEndTime, combinedToken).ConfigureAwait(false);
+		var recommendedDenominations = await RecommendationAsync(roundId, recommendationEndTime, combinedToken).ConfigureAwait(false);
 
 		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
 		var inputEffectiveValuesAndSizes = registeredAliceClients.Select(x => (x.EffectiveValue, x.SmartCoin.ScriptPubKey.EstimateInputVsize()));

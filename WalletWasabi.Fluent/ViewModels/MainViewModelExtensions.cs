@@ -29,6 +29,7 @@ public static class MainViewModelExtensions
 
 		AdvancedSettingsTabViewModel.RegisterLazy(() =>
 		{
+			//alma
 			mainViewModel.SettingsPage.SelectedTab = 2;
 			return mainViewModel.SettingsPage;
 		});

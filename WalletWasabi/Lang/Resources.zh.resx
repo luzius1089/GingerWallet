@@ -2191,4 +2191,28 @@
   <data name="CanSelectPrivateCoinsInCoinJoinCoinSelectorToolTip" xml:space="preserve">
     <value>选择中允许包含已经私有的币。</value>
   </data>
+  <data name="SecretHuntViewModelTitle" xml:space="preserve">
+    <value>秘密狩猎</value>
+  </data>
+  <data name="SecretHuntViewModelCaption" xml:space="preserve">
+    <value>秘密狩猎活动的当前状态。</value>
+  </data>
+  <data name="SecretHuntViewModelKeywords" xml:space="preserve">
+    <value>秘密, 狩猎, Coinjoin</value>
+  </data>
+  <data name="SecretHuntSecret" xml:space="preserve">
+    <value>一个秘密——一个词或一句话。</value>
+  </data>
+  <data name="SecretHuntExtraSecret" xml:space="preserve">
+    <value>当所有普通秘密都已知时，额外秘密会被揭示。</value>
+  </data>
+  <data name="SecretHuntEventUnsolved" xml:space="preserve">
+    <value>此活动尚未解决。</value>
+  </data>
+  <data name="SecretHuntEventSolved" xml:space="preserve">
+    <value>对于此活动，所有秘密和额外秘密都已揭示。如何处理它们取决于你自己。</value>
+  </data>
+  <data name="SecretHuntSettingsEnable" xml:space="preserve">
+    <value>启用或禁用此钱包用于秘密狩猎。</value>
+  </data>
 </root>

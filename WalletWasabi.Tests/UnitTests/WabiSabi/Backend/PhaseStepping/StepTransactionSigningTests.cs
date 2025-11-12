@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
@@ -29,16 +30,17 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.MaxInputCountByRound = 2;
 		cfg.MinInputCountByRoundMultiplier = 0.5;
 		cfg.MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountCredentialValue);
 		cfg.CreateNewRoundBeforeInputRegEnd = TimeSpan.Zero;
 
-		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs(rnd);
 
-		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(mockRpc).CreateAndStartAsync();
+		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin1.Coin, coin2.Coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(mockRpc).CreateAndStartAsync(rnd);
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		await arena.TriggerAndWaitRoundAsync(token);
@@ -61,15 +63,16 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateWabiSabiConfig();
-		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs(rnd);
 
-		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin1.Coin, coin2.Coin);
 		mockRpc.OnSendRawTransactionAsync = (_) =>
 			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiTestFactory.CreatePrison();
-		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync(rnd);
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		await arena.TriggerAndWaitRoundAsync(token);
@@ -98,15 +101,16 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateWabiSabiConfig();
-		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs(rnd);
 
-		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin1.Coin, coin2.Coin);
 		mockRpc.OnSendRawTransactionAsync = (_) =>
 			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiTestFactory.CreatePrison();
-		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync(rnd);
 
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
@@ -139,18 +143,19 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateWabiSabiConfig();
 		cfg.MinInputCountByRoundMultiplier = 1;
 		cfg.MinInputCountByBlameRoundMultiplier = 1;
 		cfg.TransactionSigningTimeout = TimeSpan.Zero;
-		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs(rnd);
 
-		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin1.Coin, coin2.Coin);
 		mockRpc.OnSendRawTransactionAsync = (_) =>
 			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiTestFactory.CreatePrison();
-		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync(rnd);
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		await arena.TriggerAndWaitRoundAsync(token);
@@ -175,23 +180,24 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateWabiSabiConfig();
 		cfg.MinInputCountByRoundMultiplier = 1;
 		cfg.TransactionSigningTimeout = TimeSpan.Zero;
 		cfg.FailFastOutputRegistrationTimeout = TimeSpan.Zero;
 
-		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs(rnd);
 
-		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin1.Coin, coin2.Coin);
 		mockRpc.OnSendRawTransactionAsync = (_) =>
 			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiTestFactory.CreatePrison();
-		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync(rnd);
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		// Make sure not all alices signed.
-		var alice3 = WabiSabiTestFactory.CreateAlice(round);
+		var alice3 = WabiSabiTestFactory.CreateAlice(rnd, round);
 		alice3.ConfirmedConnection = true;
 		alice3.ReadyToSign = true;
 		round.Alices.Add(alice3);
@@ -227,20 +233,21 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateWabiSabiConfig();
 		cfg.TransactionSigningTimeout = TimeSpan.Zero;
 		cfg.OutputRegistrationTimeout = TimeSpan.Zero;
 		cfg.FailFastTransactionSigningTimeout = TimeSpan.Zero;
 
-		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs();
+		var (keyChain, coin1, coin2) = WabiSabiTestFactory.CreateCoinKeyPairs(rnd);
 
-		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
+		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin1.Coin, coin2.Coin);
 		mockRpc.OnSendRawTransactionAsync = (tx) =>
 			throw new RPCException(RPCErrorCode.RPC_TRANSACTION_REJECTED, "", null);
 
 		Prison prison = WabiSabiTestFactory.CreatePrison();
 
-		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.From(cfg, mockRpc, prison).CreateAndStartAsync(rnd);
 		var (round, aliceClient1, aliceClient2) = await CreateRoundWithOutputsReadyToSignAsync(arena, keyChain, coin1, coin2);
 
 		var badOutpoint = aliceClient1.SmartCoin.Coin.Outpoint;

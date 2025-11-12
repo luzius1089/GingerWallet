@@ -1,6 +1,7 @@
-using System.Collections.Immutable;
+using GingerCommon.Crypto.Random;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -8,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.Tor.Socks5.Pool.Circuits;
 using WalletWasabi.WabiSabi;
@@ -18,14 +21,13 @@ using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 using Xunit.Abstractions;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -55,7 +57,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		// means that the output is spent or simply doesn't even exist.
 		var nonExistingOutPoint = new OutPoint();
 		using var signingKey = new Key();
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(signingKey, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(TestRandom.Get(), signingKey, round.Id);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 		   await apiClient.RegisterInputAsync(round.Id, nonExistingOutPoint, ownershipProof, CancellationToken.None));
@@ -99,7 +101,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		// If an output is not in the utxo dataset then it is not unspent, this
 		// means that the output is spent or simply doesn't even exist.
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(signingKey, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(TestRandom.Get(), signingKey, round.Id);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 			await apiClient.RegisterInputAsync(round.Id, bannedOutPoint, ownershipProof, timeoutCts.Token));
@@ -122,7 +124,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		_output.WriteLine("Creating key manager...");
 		KeyManager keyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
 
-		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
+		var coins = GenerateSmartCoins(TestRandom.Get(), keyManager, amounts, inputCount);
 
 		_output.WriteLine("Coins were created successfully");
 
@@ -193,7 +195,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		_output.WriteLine("Creating key manager...");
 		KeyManager keyManager = KeyManager.CreateNew(out var _, password: "", Network.Main);
 
-		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
+		var coins = GenerateSmartCoins(TestRandom.Get(), keyManager, amounts, inputCount);
 
 		_output.WriteLine("Coins were created successfully");
 
@@ -274,6 +276,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
 	public async Task CoinJoinWithBlameRoundTestAsync(long[] amounts)
 	{
+		var rnd = TestRandom.Get();
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
@@ -286,8 +289,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 
-		var coins = GenerateSmartCoins(keyManager1, amounts, inputCount);
-		var badCoins = GenerateSmartCoins(keyManager2, amounts, inputCount);
+		var coins = GenerateSmartCoins(rnd, keyManager1, amounts, inputCount);
+		var badCoins = GenerateSmartCoins(rnd, keyManager2, amounts, inputCount);
 
 		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
 		builder.AddMockRpcClient(
@@ -534,16 +537,17 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		}
 		finally
 		{
-			await node.TryStopAsync();
+			await node.TryStopAsync(true, 2);
 		}
 	}
 
 	[Fact]
 	public async Task RegisterCoinIdempotencyAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key signingKey = new();
 		Coin coinToRegister = new(
-			fromOutpoint: BitcoinFactory.CreateOutPoint(),
+			fromOutpoint: BitcoinFactory.CreateOutPoint(rnd),
 			fromTxOut: new TxOut(Money.Coins(1), signingKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)));
 
 		using HttpClient httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
@@ -570,17 +574,17 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		RoundState[] rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
 		RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
 
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(signingKey, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, signingKey, round.Id);
 		var (response, _) = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 		Assert.NotEqual(Guid.Empty, response.Value);
 	}
 
-	private SmartCoin[] GenerateSmartCoins(KeyManager keyManager, long[] amounts, int inputCount)
+	private SmartCoin[] GenerateSmartCoins(GingerRandom rnd, KeyManager keyManager, long[] amounts, int inputCount)
 	{
 		return keyManager.GetKeys()
 			.Take(inputCount)
-			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i])))
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(rnd, x, Money.Satoshis(amounts[i])))
 			.ToArray();
 	}
 

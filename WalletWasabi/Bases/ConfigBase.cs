@@ -21,6 +21,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 	protected object FileLock { get; } = new();
 
 	/// <inheritdoc/>
+	[JsonIgnore]
 	public string FilePath { get; private set; } = "";
 
 	/// <inheritdoc/>

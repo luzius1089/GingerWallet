@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using Xunit;
 using static WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage.CoinJoinTransactionArchiver;
@@ -24,11 +25,11 @@ public class CoinJoinTransactionArchiverTests
 		CoinJoinTransactionArchiver archiver = new(tempFolder);
 
 		var coins = new[]
-{
+		{
 			("", 0, 1.00118098m, true, 1)
 		};
 
-		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(coins);
+		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(TestRandom.Get(), coins);
 		using Key key = new();
 		var payment = new PaymentIntent(new[]
 		{

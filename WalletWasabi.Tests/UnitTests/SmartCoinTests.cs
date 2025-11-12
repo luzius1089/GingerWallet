@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -41,6 +42,7 @@ public class SmartCoinTests
 	[Fact]
 	public void IsSufficientlyDistancedFromExternalKeys()
 	{
+		var rnd = TestRandom.Get();
 		// 1. External, no inputs ours:
 		var tx = Transaction.Parse("0100000000010176f521a178a4b394b647169a89b29bb0d95b6bce192fd686d533eb4ea98464a20000000000ffffffff02ed212d020000000016001442da650f25abde0fef57badd745df7346e3e7d46fbda6400000000001976a914bd2e4029ce7d6eca7d2c3779e8eac36c952afee488ac02483045022100ea43ccf95e1ac4e8b305c53761da7139dbf6ff164e137a6ce9c09e15f316c22902203957818bc505bbafc181052943d7ab1f3ae82c094bf749813e8f59108c6c268a012102e59e61f20c7789aa73faf5a92dc8c0424e538c635c55d64326d95059f0f8284200000000", Network.TestNet);
 		var index = 0U;
@@ -65,7 +67,7 @@ public class SmartCoinTests
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		tx.Outputs[0].ScriptPubKey = hdpk.P2wpkhScript;
 		var inHdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
-		var inCoin = BitcoinFactory.CreateSmartCoin(inHdpk, 1m);
+		var inCoin = BitcoinFactory.CreateSmartCoin(rnd, inHdpk, 1m);
 		tx.Inputs.Add(inCoin.Outpoint);
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
@@ -86,8 +88,8 @@ public class SmartCoinTests
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		tx.Outputs[0].ScriptPubKey = hdpk.P2wpkhScript;
 		inHdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
-		inCoin = BitcoinFactory.CreateSmartCoin(inHdpk, 1m);
-		inCoin.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false), 1m));
+		inCoin = BitcoinFactory.CreateSmartCoin(rnd, inHdpk, 1m);
+		inCoin.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(rnd, km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false), 1m));
 		tx.Inputs[1] = new TxIn(inCoin.Outpoint);
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);
@@ -108,7 +110,7 @@ public class SmartCoinTests
 		hdpk = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		tx.Outputs[0].ScriptPubKey = hdpk.P2wpkhScript;
 		var inHdpk2 = km.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: true);
-		var inCoin2 = BitcoinFactory.CreateSmartCoin(inHdpk2, 1m);
+		var inCoin2 = BitcoinFactory.CreateSmartCoin(rnd, inHdpk2, 1m);
 		tx.Inputs.Add(inCoin2.Outpoint);
 		stx = new SmartTransaction(tx, height);
 		stx.TryAddWalletInput(inCoin);

@@ -1,12 +1,14 @@
+using DynamicData;
+using GingerCommon.Crypto.Random;
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using DynamicData;
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
@@ -29,7 +31,7 @@ public class SmartCoinSelectorTests
 	public void SelectsOnlyOneCoinWhenPossible()
 	{
 		decimal target = 0.3m;
-		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1))));
+		List<SmartCoin> availableCoins = GenerateSmartCoins(TestRandom.Get(), Enumerable.Range(0, 9).Select(i => ("Juan", 0.1m * (i + 1))));
 
 		SmartCoinSelector selector = new(availableCoins);
 		IEnumerable<ICoin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, Money.Coins(target));
@@ -42,7 +44,7 @@ public class SmartCoinSelectorTests
 	public void DontSelectUnnecessaryInputs()
 	{
 		Money target = Money.Coins(4m);
-		List<SmartCoin> availableCoins = GenerateSmartCoins(Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1))));
+		List<SmartCoin> availableCoins = GenerateSmartCoins(TestRandom.Get(), Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1))));
 
 		SmartCoinSelector selector = new(availableCoins);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
@@ -55,7 +57,7 @@ public class SmartCoinSelectorTests
 	public void PreferSameClusterOverExactAmount()
 	{
 		Money target = Money.Coins(0.3m);
-		List<SmartCoin> availableCoins = GenerateSmartCoins(("Besos", 0.2m), ("Besos", 0.2m), ("Juan", 0.1m), ("Juan", 0.1m));
+		List<SmartCoin> availableCoins = GenerateSmartCoins(TestRandom.Get(), ("Besos", 0.2m), ("Besos", 0.2m), ("Juan", 0.1m), ("Juan", 0.1m));
 
 		SmartCoinSelector selector = new(availableCoins);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
@@ -68,7 +70,7 @@ public class SmartCoinSelectorTests
 	public void PreferExactAmountWhenClustersAreDifferent()
 	{
 		Money target = Money.Coins(0.3m);
-		List<SmartCoin> availableCoins = GenerateSmartCoins(("Besos", 0.2m), ("Juan", 0.1m), ("Adam", 0.2m), ("Eve", 0.1m));
+		List<SmartCoin> availableCoins = GenerateSmartCoins(TestRandom.Get(), ("Besos", 0.2m), ("Juan", 0.1m), ("Adam", 0.2m), ("Eve", 0.1m));
 
 		SmartCoinSelector selector = new(availableCoins);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
@@ -81,7 +83,7 @@ public class SmartCoinSelectorTests
 	public void DontUseTheWholeClusterIfNotNecessary()
 	{
 		Money target = Money.Coins(0.3m);
-		List<SmartCoin> availableCoins = GenerateDuplicateSmartCoins(("Juan", 0.1m), count: 10);
+		List<SmartCoin> availableCoins = GenerateDuplicateSmartCoins(TestRandom.Get(), ("Juan", 0.1m), count: 10);
 
 		SmartCoinSelector selector = new(availableCoins);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
@@ -93,9 +95,10 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void PreferLessCoinsOnSameAmount()
 	{
+		var rnd = TestRandom.Get();
 		Money target = Money.Coins(1m);
-		List<SmartCoin> availableCoins = GenerateDuplicateSmartCoins(("Juan", 0.1m), count: 11);
-		availableCoins.Add(GenerateDuplicateSmartCoins(("Beto", 0.2m), count: 5));
+		List<SmartCoin> availableCoins = GenerateDuplicateSmartCoins(rnd, ("Juan", 0.1m), count: 11);
+		availableCoins.Add(GenerateDuplicateSmartCoins(rnd, ("Beto", 0.2m), count: 5));
 
 		SmartCoinSelector selector = new(availableCoins);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
@@ -107,9 +110,10 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void PreferLessCoinsOverExactAmount()
 	{
+		var rnd = TestRandom.Get();
 		Money target = Money.Coins(0.41m);
-		var smartCoins = GenerateSmartCoins(Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1))));
-		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
+		var smartCoins = GenerateSmartCoins(rnd, Enumerable.Range(0, 10).Select(i => ("Juan", 0.1m * (i + 1))));
+		smartCoins.Add(BitcoinFactory.CreateSmartCoin(rnd, smartCoins[0].HdPubKey, 0.11m));
 		var someCoins = smartCoins.Select(x => x.Coin);
 
 		var selector = new SmartCoinSelector(smartCoins);
@@ -122,9 +126,10 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void PreferSameScript()
 	{
+		var rnd = TestRandom.Get();
 		Money target = Money.Coins(0.31m);
-		var smartCoins = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 12)).ToList();
-		smartCoins.Add(BitcoinFactory.CreateSmartCoin(smartCoins[0].HdPubKey, 0.11m));
+		var smartCoins = GenerateSmartCoins(rnd, Enumerable.Repeat(("Juan", 0.2m), 12)).ToList();
+		smartCoins.Add(BitcoinFactory.CreateSmartCoin(rnd, smartCoins[0].HdPubKey, 0.11m));
 
 		var selector = new SmartCoinSelector(smartCoins);
 		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
@@ -137,9 +142,10 @@ public class SmartCoinSelectorTests
 	[Fact]
 	public void PreferMorePrivateClusterScript()
 	{
+		var rnd = TestRandom.Get();
 		Money target = Money.Coins(0.3m);
-		var coinsKnownByJuan = GenerateSmartCoins(Enumerable.Repeat(("Juan", 0.2m), 5));
-		var coinsKnownByBeto = GenerateSmartCoins(Enumerable.Repeat(("Beto", 0.2m), 2));
+		var coinsKnownByJuan = GenerateSmartCoins(rnd, Enumerable.Repeat(("Juan", 0.2m), 5));
+		var coinsKnownByBeto = GenerateSmartCoins(rnd, Enumerable.Repeat(("Beto", 0.2m), 2));
 
 		var selector = new SmartCoinSelector(coinsKnownByJuan.Concat(coinsKnownByBeto).ToList());
 		var coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();
@@ -148,13 +154,13 @@ public class SmartCoinSelectorTests
 		Assert.Equal(0.4m, coinsToSpend.Sum(x => x.Amount.ToUnit(MoneyUnit.BTC)));
 	}
 
-	private List<SmartCoin> GenerateDuplicateSmartCoins((string Cluster, decimal amount) coin, int count)
-		=> GenerateSmartCoins(Enumerable.Range(start: 0, count).Select(x => coin));
+	private List<SmartCoin> GenerateDuplicateSmartCoins(GingerRandom rnd, (string Cluster, decimal amount) coin, int count)
+		=> GenerateSmartCoins(rnd, Enumerable.Range(start: 0, count).Select(x => coin));
 
-	private List<SmartCoin> GenerateSmartCoins(params (string Cluster, decimal amount)[] coins)
-		=> GenerateSmartCoins((IEnumerable<(string Cluster, decimal amount)>)coins);
+	private List<SmartCoin> GenerateSmartCoins(GingerRandom rnd, params (string Cluster, decimal amount)[] coins)
+		=> GenerateSmartCoins(rnd, (IEnumerable<(string Cluster, decimal amount)>)coins);
 
-	private List<SmartCoin> GenerateSmartCoins(IEnumerable<(string Cluster, decimal amount)> coins)
+	private List<SmartCoin> GenerateSmartCoins(GingerRandom rnd, IEnumerable<(string Cluster, decimal amount)> coins)
 	{
 		Dictionary<string, List<(HdPubKey key, decimal amount)>> generatedKeyGroup = new();
 
@@ -189,7 +195,7 @@ public class SmartCoinSelectorTests
 
 		return coinPairClusters.Select(x => x.coinPair)
 			.SelectMany(x =>
-				x.Select(y => BitcoinFactory.CreateSmartCoin(y.key, y.amount)))
+				x.Select(y => BitcoinFactory.CreateSmartCoin(rnd, y.key, y.amount)))
 			.ToList(); // Generate the final SmartCoins.
 	}
 }

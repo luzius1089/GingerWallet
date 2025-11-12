@@ -1,5 +1,6 @@
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis;
@@ -13,7 +14,7 @@ public class NormalSpendAnonScoreTests
 	public void OneOwnInOneOut()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 0);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 0, 1, 1, 0);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
 		key.SetAnonymitySet(3, tx.GetHash());
@@ -30,7 +31,7 @@ public class NormalSpendAnonScoreTests
 	public void ManyOwnInOneOut()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 3, 0);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 0, 1, 3, 0);
 
 		foreach (var coin in tx.WalletInputs)
 		{
@@ -49,7 +50,7 @@ public class NormalSpendAnonScoreTests
 	public void OneOwnInManyOut()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 0);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 0, 3, 1, 0);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
 		key.SetAnonymitySet(3, tx.GetHash());
@@ -66,7 +67,7 @@ public class NormalSpendAnonScoreTests
 	public void OneOwnInOneOutOneOwnOut()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 1);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 0, 1, 1, 1);
 
 		foreach (var coin in tx.WalletInputs)
 		{
@@ -86,7 +87,7 @@ public class NormalSpendAnonScoreTests
 	public void OneOwnInManyOutManyOwnOut()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 3);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 0, 3, 1, 3);
 
 		foreach (var coin in tx.WalletInputs)
 		{
@@ -105,7 +106,7 @@ public class NormalSpendAnonScoreTests
 	public void ManyOwnInOneOutOneOwnOut()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 3, 1);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 0, 1, 3, 1);
 
 		foreach (var coin in tx.WalletInputs)
 		{
@@ -124,7 +125,7 @@ public class NormalSpendAnonScoreTests
 	public void ManyOwnInManyOutManyOwnOut()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 3, 3);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 0, 3, 3, 3);
 
 		foreach (var coin in tx.WalletInputs)
 		{

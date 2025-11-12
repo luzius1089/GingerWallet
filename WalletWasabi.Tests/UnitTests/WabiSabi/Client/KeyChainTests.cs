@@ -3,6 +3,7 @@ using NBitcoin.BIP322;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -19,7 +20,7 @@ public class KeyChainTests
 		var keyChain = new KeyChain(keyManager, new Kitchen(""));
 
 		var coinDestination = destinationProvider.GetNextDestinations(1, false).First();
-		var coin = new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), coinDestination));
+		var coin = new Coin(BitcoinFactory.CreateOutPoint(TestRandom.Get()), new TxOut(Money.Coins(1.0m), coinDestination));
 
 		var transaction = Transaction.Create(Network.Main); // the transaction doesn't contain the input that we request to be signed.
 

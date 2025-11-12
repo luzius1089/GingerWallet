@@ -50,4 +50,19 @@ public abstract class GingerRandom
 
 		return fromInclusive + (long)high;
 	}
+
+	public string GetString(int len, string chars)
+	{
+		if (string.IsNullOrEmpty(chars))
+		{
+			throw new ArgumentException($"{nameof(chars)} is empty");
+		}
+
+		Span<char> rndChars = len <= 256 ? stackalloc char[len] : new char[len];
+		for (int idx = 0; idx < len; idx++)
+		{
+			rndChars[idx] = chars[GetInt(0, chars.Length)];
+		}
+		return new string(rndChars);
+	}
 }

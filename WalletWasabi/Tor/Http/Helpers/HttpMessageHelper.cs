@@ -133,7 +133,7 @@ public static class HttpMessageHelper
 			: throw new FormatException("There's no CRLF.");
 	}
 
-	public static byte[] DecompressGzipContentIfRequired(HttpContentHeaders contentHeaders, byte[] contentBytes)
+	public static byte[] DecompressContentIfRequired(HttpContentHeaders contentHeaders, byte[] contentBytes)
 	{
 		if (contentBytes.Length == 0)
 		{
@@ -142,25 +142,35 @@ public static class HttpMessageHelper
 
 		if (contentHeaders.ContentEncoding.Contains("gzip"))
 		{
-			using (var src = new MemoryStream(contentBytes))
-			using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
-			using (var targetStream = new MemoryStream())
-			{
-				unzipStream.CopyTo(targetStream);
-				contentBytes = targetStream.ToArray();
-			}
+			using var src = new MemoryStream(contentBytes);
+			using var unzipStream = new GZipStream(src, CompressionMode.Decompress);
+			using var targetStream = new MemoryStream();
+
+			unzipStream.CopyTo(targetStream);
+			contentBytes = targetStream.ToArray();
 
 			// Content-Length is removed, since it no longer applies to the decompressed content.
 			contentHeaders.ContentLength = null;
-
 			contentHeaders.ContentEncoding.Remove("gzip");
+		}
+		else if (contentHeaders.ContentEncoding.Contains("br"))
+		{
+			using var src = new MemoryStream(contentBytes);
+			using var unzipStream = new BrotliStream(src, CompressionMode.Decompress);
+			using var targetStream = new MemoryStream();
 
-			if (contentHeaders.ContentEncoding.Count == 0)
-			{
-				contentHeaders.Remove("Content-Encoding");
-			}
+			unzipStream.CopyTo(targetStream);
+			contentBytes = targetStream.ToArray();
+
+			// Content-Length is removed, since it no longer applies to the decompressed content.
+			contentHeaders.ContentLength = null;
+			contentHeaders.ContentEncoding.Remove("br");
 		}
 
+		if (contentHeaders.ContentEncoding.Count == 0)
+		{
+			contentHeaders.Remove("Content-Encoding");
+		}
 		return contentBytes;
 	}
 

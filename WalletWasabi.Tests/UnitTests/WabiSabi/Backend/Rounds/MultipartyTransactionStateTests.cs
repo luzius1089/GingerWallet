@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -15,14 +16,15 @@ public class MultipartyTransactionStateTests
 	[Fact]
 	public void CanGetDifferentialStateTest()
 	{
+		var rnd = TestRandom.Get();
 		var cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 
 		var commitmentData = WabiSabiTestFactory.CreateCommitmentData(round.Id);
 
-		(var coin1, var ownershipProof1) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
-		(var coin2, var ownershipProof2) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
-		(var coin3, var ownershipProof3) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
+		(var coin1, var ownershipProof1) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(rnd, roundId: round.Id);
+		(var coin2, var ownershipProof2) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(rnd, roundId: round.Id);
+		(var coin3, var ownershipProof3) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(rnd, roundId: round.Id);
 
 		// Three events / three states
 		var state0 = round.Assert<ConstructionState>();

@@ -1,8 +1,6 @@
 using GingerCommon.Crypto.Random;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Crypto.Randomness;
 
@@ -17,7 +15,9 @@ public static class TestRandom
 			// Deterministic seed
 			var localFilePath = callerFilePath[callerFilePath.LastIndexOf("WalletWasabi")..].Replace("\\", "/");
 			var str = string.Join(",", localFilePath, callerMemberName, seed.ToString(CultureInfo.InvariantCulture));
-			return new DeterministicRandom(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
+			Span<byte> seedArray = stackalloc byte[32];
+			RandomExtensions.GenerateSeed(seedArray, str);
+			return new DeterministicRandom(seedArray);
 		}
 		return new DeterministicRandom(seed);
 	}

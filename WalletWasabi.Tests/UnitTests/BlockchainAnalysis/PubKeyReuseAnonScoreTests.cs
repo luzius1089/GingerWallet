@@ -3,6 +3,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis;
@@ -17,6 +18,7 @@ public class PubKeyReuseAnonScoreTests
 		var km = ServiceFactory.CreateKeyManager();
 		var reuse = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
@@ -40,6 +42,7 @@ public class PubKeyReuseAnonScoreTests
 		var km = ServiceFactory.CreateKeyManager();
 		var reuse = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
@@ -68,6 +71,7 @@ public class PubKeyReuseAnonScoreTests
 		var km = ServiceFactory.CreateKeyManager();
 		var reuse = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 0,
 			Enumerable.Empty<Money>(),
 			new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
@@ -92,6 +96,7 @@ public class PubKeyReuseAnonScoreTests
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 0,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
@@ -111,6 +116,7 @@ public class PubKeyReuseAnonScoreTests
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 0,
 			Enumerable.Empty<Money>(),
 			new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
@@ -129,6 +135,7 @@ public class PubKeyReuseAnonScoreTests
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
@@ -147,6 +154,7 @@ public class PubKeyReuseAnonScoreTests
 		var analyser = new BlockchainAnalyzer();
 		var key = BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager());
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 100, key) },
@@ -165,6 +173,7 @@ public class PubKeyReuseAnonScoreTests
 		var analyser = new BlockchainAnalyzer();
 		var reuse = BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager());
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(ServiceFactory.CreateKeyManager())) },
@@ -185,6 +194,7 @@ public class PubKeyReuseAnonScoreTests
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 9,
 			Enumerable.Repeat(Money.Coins(1m), 9).Concat(Enumerable.Repeat(Money.Coins(2m), 7)),
 			new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
@@ -206,6 +216,7 @@ public class PubKeyReuseAnonScoreTests
 		var km = ServiceFactory.CreateKeyManager();
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 9,
 			Enumerable.Repeat(Money.Coins(1m), 9).Concat(Enumerable.Repeat(Money.Coins(2m), 8)).Concat(Enumerable.Repeat(Money.Coins(3m), 7)).Concat(Enumerable.Repeat(Money.Coins(4m), 6)).Concat(Enumerable.Repeat(Money.Coins(5m), 5)).Concat(Enumerable.Repeat(Money.Coins(6m), 4)),
 			new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
@@ -230,6 +241,7 @@ public class PubKeyReuseAnonScoreTests
 		using var destination = new Key();
 		var reusedTxOut = new TxOut(equalOutputAmount, destination);
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			othersInputCount: 9,
 			Enumerable.Range(0, 7).Select(_ => new TxOut(equalOutputAmount, new Key())).Concat([reusedTxOut, reusedTxOut]),
 			[(Money.Coins(1.1m), 1, BitcoinFactory.CreateHdPubKey(km))],
@@ -248,7 +260,7 @@ public class PubKeyReuseAnonScoreTests
 	public void CoinJoinSend()
 	{
 		var analyser = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(2, 2, 40, 0);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 2, 2, 40, 0);
 
 		// Make sure that Analyze won't throw in case of no own outputs.
 		analyser.Analyze(tx);

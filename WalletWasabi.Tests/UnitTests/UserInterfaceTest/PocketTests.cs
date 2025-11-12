@@ -1,5 +1,6 @@
 using System.Linq;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
@@ -9,11 +10,12 @@ public class PocketTests
 	[Fact]
 	public void MergeTests()
 	{
+		var rnd = TestRandom.Get();
 		var emptyPocketArray = Array.Empty<Pocket>();
 		var emptyPocket = Pocket.Empty;
-		var pocket1 = LabelTestExtensions.CreateSingleCoinPocket(0.5m, "Pocket 1");
-		var pocket2 = LabelTestExtensions.CreateSingleCoinPocket(0.2m, "Pocket 2");
-		var pocket3 = LabelTestExtensions.CreateSingleCoinPocket(0.4m, "Pocket 3");
+		var pocket1 = LabelTestExtensions.CreateSingleCoinPocket(rnd, 0.5m, "Pocket 1");
+		var pocket2 = LabelTestExtensions.CreateSingleCoinPocket(rnd, 0.2m, "Pocket 2");
+		var pocket3 = LabelTestExtensions.CreateSingleCoinPocket(rnd, 0.4m, "Pocket 3");
 		var pocketArray = new[] { pocket1, pocket2 };
 
 		// Two not empty pocket

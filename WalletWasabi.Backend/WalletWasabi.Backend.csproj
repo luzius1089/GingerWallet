@@ -3,11 +3,11 @@
 	<PropertyGroup>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
-		<Product>WalletWasabiApi</Product>
+		<Product>GingerWalletApi</Product>
 		<Copyright>MIT</Copyright>
-		<PackageTags>walletwasabi, wasabiwallet, wasabi, wallet, bitcoin, nbitcoin, tor, zerolink, wabisabi, coinjoin, fungibility, privacy, anonymity</PackageTags>
+		<PackageTags>gingerwallet, ginger, wallet, bitcoin, nbitcoin, tor, zerolink, wabisabi, coinjoin, fungibility, privacy, anonymity</PackageTags>
 		<RepositoryType>Git</RepositoryType>
-		<RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+		<RepositoryUrl>https://github.com/GingerPrivacy/GingerBackend/</RepositoryUrl>
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Backend</PathMap>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
@@ -34,6 +34,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.ResponseCompression" />
 		<PackageReference Include="Swashbuckle.AspNetCore" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
 		<PackageReference Include="System.Text.Json" />

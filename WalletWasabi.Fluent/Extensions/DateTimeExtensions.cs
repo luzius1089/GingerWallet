@@ -9,6 +9,11 @@ public static class DateTimeExtensions
 		return value.ToString(withTime ? "HH:mm MMMM d, yyyy" : "MMMM d, yyyy", Resources.Culture);
 	}
 
+	public static string ToUserFacingStringFixLength(this DateTime value, bool withTime = true)
+	{
+		return value.ToString(withTime ? "HH:mm MMM dd, yyyy" : "MMM dd, yyyy", Resources.Culture);
+	}
+
 	public static string ToUserFacingFriendlyString(this DateTime value)
 	{
 		if (value.Date == DateTime.Today)

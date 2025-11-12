@@ -1,3 +1,4 @@
+using GingerCommon.Crypto.Random;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,21 +10,17 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class ServiceFactory
 {
-	public static TransactionFactory CreateTransactionFactory(
-		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
-		bool watchOnly = false)
+	public static TransactionFactory CreateTransactionFactory(GingerRandom rnd, IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins, bool watchOnly = false)
 	{
 		string password = "foo";
 		KeyManager keyManager = watchOnly ? CreateWatchOnlyKeyManager() : CreateKeyManager(password);
-		SmartCoin[] sCoins = CreateCoins(keyManager, coins);
+		SmartCoin[] sCoins = CreateCoins(rnd, keyManager, coins);
 		var coinsView = new CoinsView(sCoins);
 		var mockTransactionStore = new AllTransactionStore(".", Network.Main);
 		return new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password);
 	}
 
-	public static SmartCoin[] CreateCoins(
-		KeyManager keyManager,
-		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins)
+	public static SmartCoin[] CreateCoins(GingerRandom rnd, KeyManager keyManager, IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins)
 	{
 		var coinArray = coins.ToArray();
 
@@ -43,7 +40,7 @@ public static class ServiceFactory
 			k.SetAnonymitySet(c.AnonymitySet);
 		}
 
-		var sCoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
+		var sCoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(rnd, keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 		foreach (var coin in sCoins)
 		{
 			foreach (var sameLabelCoin in sCoins.Where(c => !c.HdPubKey.Labels.IsEmpty && c.HdPubKey.Labels == coin.HdPubKey.Labels))

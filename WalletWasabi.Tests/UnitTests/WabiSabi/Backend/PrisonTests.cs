@@ -1,11 +1,12 @@
-using System.Linq;
 using NBitcoin;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-using Xunit;
 using WalletWasabi.WabiSabi.Models;
+using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
 
@@ -19,10 +20,11 @@ public class PrisonTests
 	{
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(1));
 
+		var rnd = TestRandom.Get();
 		var (prison, reader) = WabiSabiTestFactory.CreateObservablePrison();
 
-		var outpoint = BitcoinFactory.CreateOutPoint();
-		var roundId = BitcoinFactory.CreateUint256();
+		var outpoint = BitcoinFactory.CreateOutPoint(rnd);
+		var roundId = BitcoinFactory.CreateUint256(rnd);
 
 		// Fail to verify
 		prison.FailedVerification(outpoint, roundId, TimeSpan.Zero, "");
@@ -77,8 +79,8 @@ public class PrisonTests
 		// Inherited
 		var ancestors = new[]
 		{
-			BitcoinFactory.CreateOutPoint(),
-			BitcoinFactory.CreateOutPoint()
+			BitcoinFactory.CreateOutPoint(rnd),
+			BitcoinFactory.CreateOutPoint(rnd)
 		};
 
 		prison.InheritPunishment(outpoint, ancestors, []);
@@ -94,13 +96,14 @@ public class PrisonTests
 	[Fact]
 	public void BanningTime()
 	{
+		var rnd = TestRandom.Get();
 		var (prison, _) = WabiSabiTestFactory.CreateObservablePrison();
 		var cfg = WabiSabiTestFactory.CreateWabiSabiConfig().GetDoSConfiguration() with { SimplifiedPunishment = TimeSpan.Zero };
 
-		var roundId = BitcoinFactory.CreateUint256();
+		var roundId = BitcoinFactory.CreateUint256(rnd);
 
 		// Failed to verify punishment is constant (not affected by number of attempts)
-		var ftvOutpoint = BitcoinFactory.CreateOutPoint();
+		var ftvOutpoint = BitcoinFactory.CreateOutPoint(rnd);
 		prison.FailedVerification(ftvOutpoint, roundId, TimeSpan.Zero, "");
 		prison.FailedVerification(ftvOutpoint, roundId, TimeSpan.Zero, "");
 		prison.FailedVerification(ftvOutpoint, roundId, TimeSpan.Zero, "");
@@ -108,7 +111,7 @@ public class PrisonTests
 		Assert.Equal(cfg.MinTimeForFailedToVerify, banningPeriod.Duration);
 
 		// Cheating punishment is constant (not affected by number of attempts)
-		var chtOutpoint = BitcoinFactory.CreateOutPoint();
+		var chtOutpoint = BitcoinFactory.CreateOutPoint(rnd);
 		prison.CheatingDetected(chtOutpoint, roundId);
 		prison.CheatingDetected(chtOutpoint, roundId);
 		prison.CheatingDetected(chtOutpoint, roundId);
@@ -116,8 +119,8 @@ public class PrisonTests
 		Assert.Equal(cfg.MinTimeForCheating, banningPeriod.Duration);
 
 		// Failed to confirm is calculated and inversely proportional to the amount
-		var ftcOutpoint1 = BitcoinFactory.CreateOutPoint();
-		var ftcOutpoint2 = BitcoinFactory.CreateOutPoint();
+		var ftcOutpoint1 = BitcoinFactory.CreateOutPoint(rnd);
+		var ftcOutpoint2 = BitcoinFactory.CreateOutPoint(rnd);
 		prison.FailedToConfirm(ftcOutpoint1, Money.Coins(0.5m), roundId);
 		prison.FailedToConfirm(ftcOutpoint2, Money.Coins(1.0m), roundId);
 
@@ -132,7 +135,7 @@ public class PrisonTests
 
 		// .... the worst offense is applied
 		// Note: this case is compared against ftcOutpoint1 which failed to confirm twice
-		var ftcOutpoint3 = BitcoinFactory.CreateOutPoint();
+		var ftcOutpoint3 = BitcoinFactory.CreateOutPoint(rnd);
 		prison.FailedToConfirm(ftcOutpoint3, Money.Coins(0.5m), roundId);
 		prison.FailedToSign(ftcOutpoint3, Money.Coins(0.5m), roundId);
 
@@ -140,7 +143,7 @@ public class PrisonTests
 		Assert.True(banningPeriod3FailedToConfirmAndSign.Duration > banningPeriod1FailedToConfirmTwice.Duration);
 
 		// Big amounts are not banned the first time
-		var ftcOutpointBig = BitcoinFactory.CreateOutPoint();
+		var ftcOutpointBig = BitcoinFactory.CreateOutPoint(rnd);
 		prison.FailedToConfirm(ftcOutpointBig, Money.Coins(2m), roundId);
 		var banningPeriodBigCoin = prison.GetBan(ftcOutpointBig, cfg).BanningTime;
 		Assert.Equal(TimeSpan.Zero, banningPeriodBigCoin.Duration);
@@ -161,9 +164,9 @@ public class PrisonTests
 		Assert.NotEqual(TimeSpan.Zero, banningPeriodBigPaidCoin.Duration); // it IS banned second time
 
 		// coins inherit the punishments from their ancestors
-		var ftcFailedToSign = BitcoinFactory.CreateOutPoint();
-		var ftcFailedToConfirm = BitcoinFactory.CreateOutPoint();
-		var ftcInheritFromFailedToSign = BitcoinFactory.CreateOutPoint();
+		var ftcFailedToSign = BitcoinFactory.CreateOutPoint(rnd);
+		var ftcFailedToConfirm = BitcoinFactory.CreateOutPoint(rnd);
+		var ftcInheritFromFailedToSign = BitcoinFactory.CreateOutPoint(rnd);
 		prison.FailedToSign(ftcFailedToSign, Money.Coins(0.005m), roundId);
 		prison.FailedToConfirm(ftcFailedToConfirm, Money.Coins(0.005m), roundId);
 		prison.InheritPunishment(ftcInheritFromFailedToSign, [ftcFailedToSign, ftcFailedToConfirm], [InputBannedReasonEnum.RoundDisruptionMethodDidNotSign, InputBannedReasonEnum.RoundDisruptionMethodDidNotConfirm]);
@@ -181,7 +184,7 @@ public class PrisonTests
 		Assert.Equal(expected.OrderBy(e => e), inheritedReasons.OrderBy(e => e));
 
 		// After spending a couple of times the coin is no longer banned
-		var outpointsToBan = Enumerable.Range(0, 10).Select(_ => BitcoinFactory.CreateOutPoint()).ToArray();
+		var outpointsToBan = Enumerable.Range(0, 10).Select(_ => BitcoinFactory.CreateOutPoint(rnd)).ToArray();
 		prison.FailedToSign(outpointsToBan[0], Money.Coins(0.005m), roundId);
 		var banningTimeFrames = outpointsToBan.Zip(outpointsToBan[1..], (a, b) => new { Destroyed = a, Created = b })
 			.Select(x =>

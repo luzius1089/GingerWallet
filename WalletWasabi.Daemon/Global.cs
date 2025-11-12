@@ -37,6 +37,7 @@ using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
 using WalletWasabi.Daemon.BuySell;
 using WalletWasabi.Daemon.FeeRateProviders;
+using WalletWasabi.SecretHunt;
 
 namespace WalletWasabi.Daemon;
 
@@ -91,7 +92,7 @@ public class Global
 		UpdateManager = new(DataDir, Config.DownloadNewVersion, HttpClientFactory.NewHttpClient(Mode.DefaultCircuit, maximumRedirects: 10), updateChecker);
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit));
 
-		RoundStateUpdaterCircuit = new PersonCircuit();
+		RoundStateUpdaterCircuit = new();
 
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
@@ -189,6 +190,7 @@ public class Global
 	public Uri? OnionServiceUri { get; private set; }
 
 	private PersonCircuit RoundStateUpdaterCircuit { get; }
+
 	private AllTransactionStore AllTransactionStore { get; }
 	private IndexStore IndexStore { get; }
 
@@ -404,6 +406,8 @@ public class Global
 		string[] allowedCoordinationIdentifiers = Config.CoordinatorIdentifier.Length > 0 ? [Config.CoordinatorIdentifier, Config.MainNetCoordinatorUri] : [Config.MainNetCoordinatorUri];
 		Tor.Http.IHttpClient roundStateUpdaterHttpClient = CoordinatorHttpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, RoundStateUpdaterCircuit);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(0.1), allowedCoordinationIdentifiers, new WabiSabiHttpApiClient(roundStateUpdaterHttpClient)), "Round info updater");
+
+		HostedServices.Register<SecretHuntUpdater>(() => new SecretHuntUpdater(WalletManager, TimeSpan.FromSeconds(0.1), CoordinatorHttpClientFactory, HostedServices.Get<RoundStateUpdater>()), "Secret Hunt updater");
 
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoordinationFeeRate, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), CoordinatorHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");

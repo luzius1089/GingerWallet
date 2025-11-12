@@ -8,6 +8,7 @@ using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
@@ -165,7 +166,7 @@ public class RpcBasedTests
 		}
 		finally
 		{
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -181,7 +182,7 @@ public class RpcBasedTests
 		}
 		finally
 		{
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -223,7 +224,7 @@ public class RpcBasedTests
 		}
 		finally
 		{
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -239,7 +240,7 @@ public class RpcBasedTests
 		}
 		finally
 		{
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -275,8 +276,9 @@ public class RpcBasedTests
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		try
 		{
+			var rnd = TestRandom.Get();
 			var rpc = coreNode.RpcClient;
-			var txs = await rpc.GetRawTransactionsAsync(new[] { BitcoinFactory.CreateUint256(), BitcoinFactory.CreateUint256() }, CancellationToken.None);
+			var txs = await rpc.GetRawTransactionsAsync(new[] { BitcoinFactory.CreateUint256(rnd), BitcoinFactory.CreateUint256(rnd) }, CancellationToken.None);
 			Assert.Empty(txs);
 
 			await rpc.CreateWalletAsync("wallet");
@@ -308,7 +310,7 @@ public class RpcBasedTests
 		}
 		finally
 		{
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 }

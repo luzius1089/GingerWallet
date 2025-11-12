@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -19,6 +20,7 @@ public class TransactionFactoryTests
 	public void InsufficientBalance()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Martin", 0, 0.01m, confirmed: true, anonymitySet: 1),
@@ -41,6 +43,7 @@ public class TransactionFactoryTests
 	public void TooMuchFeePaid()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo", 0, 0.0001m, confirmed: true, anonymitySet: 1)
@@ -69,6 +72,7 @@ public class TransactionFactoryTests
 	public void SelectMostPrivateIndependentlyOfCluster()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("", 0, 0.08m, confirmed: true, anonymitySet: 50),
@@ -101,6 +105,7 @@ public class TransactionFactoryTests
 	public void SelectMostPrivateCoin()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Maria",  0, 0.08m, confirmed: true, anonymitySet: 50),
@@ -132,6 +137,7 @@ public class TransactionFactoryTests
 	public void SelectMostPrivateCoins()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: true, anonymitySet: 1),
@@ -165,6 +171,7 @@ public class TransactionFactoryTests
 	public void SelectSameScriptPubKeyCoins()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 10),
@@ -198,22 +205,23 @@ public class TransactionFactoryTests
 	[Fact]
 	public async Task SelectSameClusterCoinsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var password = "foo";
 		var keyManager = ServiceFactory.CreateKeyManager(password);
 
 		HdPubKey NewKey(string label) => keyManager.GenerateNewKey(label, KeyState.Used, true);
 		var sCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(NewKey("Pablo"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Daniel"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Adolf"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Maria"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Ding"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Joseph"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Eve"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Julio"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Donald, Jean, Lee, Jack"), 0.9m),
-			BitcoinFactory.CreateSmartCoin(NewKey("Satoshi"), 0.9m)
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Pablo"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Daniel"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Adolf"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Maria"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Ding"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Joseph"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Eve"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Julio"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Donald, Jean, Lee, Jack"), 0.9m),
+			BitcoinFactory.CreateSmartCoin(rnd, NewKey("Satoshi"), 0.9m)
 		};
 		var coinsByLabel = sCoins.ToDictionary(x => x.HdPubKey.Labels);
 
@@ -288,6 +296,7 @@ public class TransactionFactoryTests
 	public void CustomChangeScript()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
@@ -320,6 +329,7 @@ public class TransactionFactoryTests
 	public void SubtractFeeFromSpecificOutput()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
@@ -356,6 +366,7 @@ public class TransactionFactoryTests
 	public void SubtractFeeFromTooSmallOutput()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
@@ -381,6 +392,7 @@ public class TransactionFactoryTests
 	public void MultiplePaymentsToSameAddress()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Maria", 0, 1m, confirmed: true, anonymitySet: 100)
@@ -416,6 +428,7 @@ public class TransactionFactoryTests
 	public void SendAbsolutelyAllCoins()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Maria",  0, 0.5m, confirmed: false, anonymitySet: 1),
@@ -444,6 +457,7 @@ public class TransactionFactoryTests
 	public void SpendOnlyAllowedCoins()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
@@ -478,6 +492,7 @@ public class TransactionFactoryTests
 	public void SpendWholeAllowedCoins()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
@@ -520,6 +535,7 @@ public class TransactionFactoryTests
 	public void InsufficientAllowedCoins()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo", 0, 0.01m, confirmed: true, anonymitySet: 1),
@@ -550,6 +566,7 @@ public class TransactionFactoryTests
 	public void SpendWholeCoinsEvenWhenNotAllowed()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo",  0, 0.01m, confirmed: false, anonymitySet: 50),
@@ -590,6 +607,7 @@ public class TransactionFactoryTests
 	public void DoNotSignWatchOnly()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)
@@ -614,7 +632,7 @@ public class TransactionFactoryTests
 		Money paymentAmount = Money.Coins(0.29943925m);
 
 		using Key key = new();
-		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(DemoCoinSets.LotOfCoins);
+		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(TestRandom.Get(), DemoCoinSets.LotOfCoins);
 
 		PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
 		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
@@ -718,7 +736,7 @@ public class TransactionFactoryTests
 			("", 81, 0.00006292m, true, 1)
 		};
 
-		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(coins);
+		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(TestRandom.Get(), coins);
 
 		PaymentIntent payment = new(key, MoneyRequest.Create(paymentAmount));
 		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
@@ -805,6 +823,7 @@ public class TransactionFactoryTests
 		static BuildTransactionResult ComputeTxResult(decimal feeRate)
 		{
 			TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory(
+				TestRandom.Get(),
 				new[]
 				{
 					(Label: "Pablo", KeyIndex: 0, Amount: 0.00011409m, Confirmed: true, AnonymitySet: 1)

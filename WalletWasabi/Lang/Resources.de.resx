@@ -2191,4 +2191,28 @@
   <data name="CanSelectPrivateCoinsInCoinJoinCoinSelectorToolTip" xml:space="preserve">
     <value>Die Auswahl darf bereits private Coins enthalten.</value>
   </data>
+  <data name="SecretHuntViewModelTitle" xml:space="preserve">
+    <value>Geheimnisjagd</value>
+  </data>
+  <data name="SecretHuntViewModelCaption" xml:space="preserve">
+    <value>Der aktuelle Status der Geheimnisjagd-Ereignisse.</value>
+  </data>
+  <data name="SecretHuntViewModelKeywords" xml:space="preserve">
+    <value>Geheimnis, Jagd, Coinjoin</value>
+  </data>
+  <data name="SecretHuntSecret" xml:space="preserve">
+    <value>Ein Geheimnis – ein Wort oder ein Satz.</value>
+  </data>
+  <data name="SecretHuntExtraSecret" xml:space="preserve">
+    <value>Ein Extra-Geheimnis, das enthüllt wird, wenn alle normalen Geheimnisse bekannt sind.</value>
+  </data>
+  <data name="SecretHuntEventUnsolved" xml:space="preserve">
+    <value>Dieses Ereignis wurde noch nicht gelöst.</value>
+  </data>
+  <data name="SecretHuntEventSolved" xml:space="preserve">
+    <value>Für dieses Ereignis sind alle Geheimnisse und das Extra-Geheimnis enthüllt. Es liegt an dir, was du damit machst.</value>
+  </data>
+  <data name="SecretHuntSettingsEnable" xml:space="preserve">
+    <value>Aktiviere oder deaktiviere die Nutzung dieser Wallet für die Geheimnisjagd.</value>
+  </data>
 </root>

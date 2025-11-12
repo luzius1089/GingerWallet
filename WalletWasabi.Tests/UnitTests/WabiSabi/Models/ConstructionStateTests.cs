@@ -2,6 +2,7 @@ using NBitcoin;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -26,6 +27,7 @@ public class ConstructionStateTests
 		var state = round.Assert<ConstructionState>();
 
 		var (coin, ownershipProof) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(
+			TestRandom.Get(),
 			amount: roundParameters.AllowedInputAmounts.Min + miningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize),
 			roundId: round.Id);
 		state = state.AddInput(coin, ownershipProof, WabiSabiTestFactory.CreateCommitmentData(round.Id));

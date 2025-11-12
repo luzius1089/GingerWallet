@@ -6,6 +6,7 @@ using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -19,7 +20,8 @@ public class OutputRegistrationRequestTests
 	[Fact]
 	public void EqualityTest()
 	{
-		uint256 roundId = BitcoinFactory.CreateUint256();
+		var rnd = TestRandom.Get();
+		uint256 roundId = BitcoinFactory.CreateUint256(rnd);
 		Script script = Script.FromHex(
 			"0200000000010111b6e0460bb810b05744f8d38262f95fbab02b168b070598a6f31fad438fced40" +
 			"00000001716001427c106013c0042da165c082b3870c31fb3ab4683feffffff0200ca9a3b000000" +
@@ -49,7 +51,7 @@ public class OutputRegistrationRequestTests
 
 		// Request #3.
 		OutputRegistrationRequest request3 = new(
-			RoundId: BitcoinFactory.CreateUint256(), // Intentionally changed.
+			RoundId: BitcoinFactory.CreateUint256(rnd), // Intentionally changed.
 			Script: script,
 			AmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),
 			VsizeCredentialRequests: NewRealCredentialsRequest(modifier: 2)

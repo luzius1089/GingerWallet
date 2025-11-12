@@ -331,7 +331,11 @@ public class WalletJsonTest
 		      "Label": "Alice, Bob",
 		      "KeyState": 0
 		    }
-		  ]
+		  ],
+		  "SecretHuntResults": {
+		    "Enabled": true,
+		    "Results": []
+		  }
 		}
 		""";
 }

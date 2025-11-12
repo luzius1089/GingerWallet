@@ -121,7 +121,7 @@ public class BitcoindRpcProcessBridge
 	/// </summary>
 	/// <remarks>If there is not PID file, no process is stopped.</remarks>
 	/// <param name="onlyOwned">Only stop if this node owns the process.</param>
-	public async Task StopAsync(bool onlyOwned)
+	public async Task StopAsync(bool onlyOwned, int waitBeforeKillInSec = -1)
 	{
 		Logger.LogDebug($"> {nameof(onlyOwned)}={onlyOwned}");
 
@@ -134,7 +134,7 @@ public class BitcoindRpcProcessBridge
 		// "process" variable is guaranteed to be non-null at this point.
 		ProcessAsync process = Process;
 
-		using var cts = new CancellationTokenSource(_reasonableCoreShutdownTimeout);
+		using var cts = new CancellationTokenSource(waitBeforeKillInSec >= 0 ? TimeSpan.FromSeconds(waitBeforeKillInSec) : _reasonableCoreShutdownTimeout);
 		int? pid = await PidFile.TryReadAsync().ConfigureAwait(false);
 
 		// If the cached PID is PID, then we own the process.
@@ -142,10 +142,9 @@ public class BitcoindRpcProcessBridge
 		{
 			Logger.LogDebug($"User is responsible for the daemon process with PID {pid}. Stop it.");
 
+			bool isKilled = false;
 			try
 			{
-				bool isKilled = false;
-
 				try
 				{
 					// Stop Bitcoin daemon using RPC "stop" command.
@@ -164,6 +163,18 @@ public class BitcoindRpcProcessBridge
 				{
 					Logger.LogDebug($"Wait until the process is stopped.");
 					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
+				}
+			}
+			catch (TaskCanceledException)
+			{
+				if (!isKilled && waitBeforeKillInSec >= 0)
+				{
+					Logger.LogWarning("Wait time elapsed, killing the process.");
+					process.Kill();
+				}
+				else
+				{
+					throw;
 				}
 			}
 			finally

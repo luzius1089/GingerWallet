@@ -1,5 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -13,7 +14,8 @@ public class InputsRemovalRequestTestsTests
 	[Fact]
 	public void EqualityTest()
 	{
-		uint256 roundId = BitcoinFactory.CreateUint256();
+		var rnd = TestRandom.Get();
+		uint256 roundId = BitcoinFactory.CreateUint256(rnd);
 		Guid guid = Guid.NewGuid();
 
 		// Request #1.
@@ -25,7 +27,7 @@ public class InputsRemovalRequestTestsTests
 		Assert.Equal(request1, request2);
 
 		// Request #3.
-		InputsRemovalRequest request3 = new(RoundId: BitcoinFactory.CreateUint256(), AliceId: guid);
+		InputsRemovalRequest request3 = new(RoundId: BitcoinFactory.CreateUint256(rnd), AliceId: guid);
 
 		Assert.NotEqual(request1, request3);
 	}

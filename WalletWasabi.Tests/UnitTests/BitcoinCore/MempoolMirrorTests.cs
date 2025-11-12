@@ -50,7 +50,7 @@ public class MempoolMirrorTests
 		finally
 		{
 			await services.StopAllAsync();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -88,7 +88,7 @@ public class MempoolMirrorTests
 		finally
 		{
 			await services.StopAllAsync();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -141,7 +141,7 @@ public class MempoolMirrorTests
 		finally
 		{
 			await services.StopAllAsync();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -187,7 +187,7 @@ public class MempoolMirrorTests
 		finally
 		{
 			await services.StopAllAsync();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -239,7 +239,7 @@ public class MempoolMirrorTests
 		finally
 		{
 			await services.StopAllAsync();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 }

@@ -1,16 +1,17 @@
 using NBitcoin;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Mime;
+using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
+using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.PayJoin;
 using Xunit;
-using System.Net.Http;
-using System.Net;
-using System.Text;
-using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
-using System.Net.Mime;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
@@ -68,6 +69,7 @@ public class PayjoinTests
 
 		var payjoinClient = NewPayjoinClient(mockHttpClient);
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			TestRandom.Get(),
 			new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -94,6 +96,7 @@ public class PayjoinTests
 	[Fact]
 	public void HonestPayjoinServerTest()
 	{
+		var rnd = TestRandom.Get();
 		var amountToPay = Money.Coins(0.001m);
 
 		// This tests the scenario where the payjoin server behaves as expected.
@@ -124,6 +127,7 @@ public class PayjoinTests
 
 		var payjoinClient = NewPayjoinClient(mockHttpClient);
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			rnd,
 			new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -149,6 +153,7 @@ public class PayjoinTests
 		Assert.Equal(0.09899718m, innerOutput.Amount.ToUnit(MoneyUnit.BTC));
 
 		transactionFactory = ServiceFactory.CreateTransactionFactory(
+			rnd,
 			new[]
 			{
 				("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1)
@@ -194,7 +199,7 @@ public class PayjoinTests
 				return psbt;
 			});
 
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(TestRandom.Get(), walletCoins);
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
@@ -248,7 +253,7 @@ public class PayjoinTests
 				return psbt;
 			});
 
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(TestRandom.Get(), walletCoins);
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
 			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
@@ -397,6 +402,7 @@ public class PayjoinTests
 	[Fact]
 	public void MinersLoverPayjoinServerTest()
 	{
+		var rnd = TestRandom.Get();
 		// The server wants to make us sign a transaction that pays too much fee
 		var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
 		var amountToPay = Money.Coins(0.001m);
@@ -414,7 +420,7 @@ public class PayjoinTests
 				return PSBT.FromTransaction(globalTx, Network.Main);
 			});
 
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(rnd, walletCoins);
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
 			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
@@ -436,7 +442,7 @@ public class PayjoinTests
 		mockHttpClient.OnSendAsync = req =>
 			PayjoinServerErrorAsync(HttpStatusCode.InternalServerError, "-2345", "Internal Server Error");
 
-		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(TestRandom.Get(), walletCoins);
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)
 			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))

@@ -1,3 +1,4 @@
+using GingerCommon.Crypto.Random;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,12 +28,12 @@ public class ArenaTestFactory
 	public ICoinJoinIdStore? CoinJoinIdStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
-	public Arena Create(params Round[] rounds)
+	public Arena Create(GingerRandom rnd, params Round[] rounds)
 	{
 		TimeSpan period = Period ?? TimeSpan.FromHours(1);
 		Prison prison = Prison ?? WabiSabiTestFactory.CreatePrison();
 		WabiSabiConfig config = Config ?? WabiSabiBackendFactory.Instance.CreateWabiSabiConfig();
-		IRPCClient rpc = Rpc ?? WabiSabiTestFactory.CreatePreconfiguredRpcClient();
+		IRPCClient rpc = Rpc ?? WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd);
 		Network network = Network ?? Network.Main;
 		ICoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new CoinJoinIdStore();
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
@@ -47,16 +48,15 @@ public class ArenaTestFactory
 		return arena;
 	}
 
-	public Task<Arena> CreateAndStartAsync(params Round[] rounds)
-		=> CreateAndStartAsync(rounds, CancellationToken.None);
+	public Task<Arena> CreateAndStartAsync(GingerRandom rnd, params Round[] rounds) => CreateAndStartAsync(rnd, rounds, CancellationToken.None);
 
-	public async Task<Arena> CreateAndStartAsync(Round[] rounds, CancellationToken cancellationToken = default)
+	public async Task<Arena> CreateAndStartAsync(GingerRandom rnd, Round[] rounds, CancellationToken cancellationToken = default)
 	{
 		Arena? toDispose = null;
 
 		try
 		{
-			toDispose = Create(rounds);
+			toDispose = Create(rnd, rounds);
 			Arena arena = toDispose;
 			await arena.StartAsync(cancellationToken).ConfigureAwait(false);
 			toDispose = null;

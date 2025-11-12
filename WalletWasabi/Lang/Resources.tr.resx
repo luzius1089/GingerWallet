@@ -2191,4 +2191,28 @@
   <data name="CanSelectPrivateCoinsInCoinJoinCoinSelectorToolTip" xml:space="preserve">
     <value>Seçim, zaten özel olan coinleri içerebilir.</value>
   </data>
+  <data name="SecretHuntViewModelTitle" xml:space="preserve">
+    <value>Gizli Avı</value>
+  </data>
+  <data name="SecretHuntViewModelCaption" xml:space="preserve">
+    <value>Gizli Avı etkinliklerinin güncel durumu.</value>
+  </data>
+  <data name="SecretHuntViewModelKeywords" xml:space="preserve">
+    <value>Gizli, Av, Coinjoin</value>
+  </data>
+  <data name="SecretHuntSecret" xml:space="preserve">
+    <value>Bir Gizli – bir kelime veya cümle.</value>
+  </data>
+  <data name="SecretHuntExtraSecret" xml:space="preserve">
+    <value>Tüm normal Gizliler bilindiğinde ortaya çıkan Ekstra Gizli.</value>
+  </data>
+  <data name="SecretHuntEventUnsolved" xml:space="preserve">
+    <value>Bu etkinlik henüz çözülmedi.</value>
+  </data>
+  <data name="SecretHuntEventSolved" xml:space="preserve">
+    <value>Bu etkinlik için tüm Gizliler ve Ekstra Gizli açığa çıkarıldı. Ne yapacağınız size kalmış.</value>
+  </data>
+  <data name="SecretHuntSettingsEnable" xml:space="preserve">
+    <value>Bu cüzdanın Gizli Avı için kullanımını etkinleştir veya devre dışı bırak.</value>
+  </data>
 </root>

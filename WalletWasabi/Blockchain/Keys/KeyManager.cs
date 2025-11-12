@@ -16,6 +16,7 @@ using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.SecretHunt;
 using WalletWasabi.Wallets;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
@@ -181,6 +182,9 @@ public class KeyManager : IJsonOnSerializing, IJsonOnDeserialized
 	public bool PreferPsbtWorkflow { get; set; }
 
 	public bool AutoCoinJoin { get => Attributes.AutoCoinJoin; set => Attributes.AutoCoinJoin = value; }
+
+	[JsonIgnore]
+	public bool EnableSecretHunt { get => Attributes.SecretHuntResults.Enabled; set => Attributes.SecretHuntResults.Enabled = value; }
 
 	/// <summary>
 	/// Won't coinjoin automatically if the wallet balance is less than this.
@@ -763,6 +767,43 @@ public class KeyManager : IJsonOnSerializing, IJsonOnDeserialized
 				SetBestHeights(newHeight);
 				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - (int)newHeight}. From {prevHeight} to {newHeight}.");
 			}
+		}
+	}
+
+	public List<SecretHuntEventResultModel> GetSecretHuntEventResultModelList()
+	{
+		lock (CriticalStateLock)
+		{
+			var modelList = Attributes.SecretHuntResults.Results.Select(r => new SecretHuntEventResultModel(r)).OrderByDescending(r => (r.EndDate, r.StartDate)).ToList();
+			return modelList;
+		}
+	}
+
+	public void UpdateSecretHuntResults(Dictionary<string, SecretHuntEventResult> results)
+	{
+		bool changed = false;
+		lock (CriticalStateLock)
+		{
+			var walletResults = Attributes.SecretHuntResults.Results;
+			foreach (SecretHuntEventResult result in results.Values)
+			{
+				// We are interested only in the active events
+				var fnd = walletResults.FindIndex(x => x.Event.Id == result.Event.Id);
+				if (fnd == -1)
+				{
+					walletResults.Add(result);
+					changed = true;
+				}
+				else if (!walletResults[fnd].Equals(result))
+				{
+					walletResults[fnd] = result;
+					changed = true;
+				}
+			}
+		}
+		if (changed)
+		{
+			ToFile();
 		}
 	}
 

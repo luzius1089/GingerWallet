@@ -53,7 +53,7 @@ public static class HttpResponseMessageExtensions
 
 		if (contentBytes is not null)
 		{
-			contentBytes = HttpMessageHelper.DecompressGzipContentIfRequired(headerStruct.ContentHeaders, contentBytes);
+			contentBytes = HttpMessageHelper.DecompressContentIfRequired(headerStruct.ContentHeaders, contentBytes);
 			response.Content = new ByteArrayContent(contentBytes);
 			HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 		}

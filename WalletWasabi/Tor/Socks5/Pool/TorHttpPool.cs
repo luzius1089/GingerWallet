@@ -35,6 +35,7 @@ public class TorHttpPool : IAsyncDisposable
 	public const int MaxConnectionsPerHost = 1000;
 
 	private static readonly StringWithQualityHeaderValue GzipEncoding = new("gzip");
+	private static readonly StringWithQualityHeaderValue BrotliEncoding = new("br");
 
 	private static readonly UnboundedChannelOptions Options = new()
 	{
@@ -490,9 +491,14 @@ public class TorHttpPool : IAsyncDisposable
 		request.Version = HttpProtocol.HTTP11.Version;
 
 		// Do not re-add the header if it is already present.
+		/*
 		if (!request.Headers.AcceptEncoding.Contains(GzipEncoding))
 		{
 			request.Headers.AcceptEncoding.Add(GzipEncoding);
+		}*/
+		if (!request.Headers.AcceptEncoding.Contains(BrotliEncoding))
+		{
+			request.Headers.AcceptEncoding.Add(BrotliEncoding);
 		}
 
 		string requestString = await request.ToHttpStringAsync(requestUriOverride, token).ConfigureAwait(false);

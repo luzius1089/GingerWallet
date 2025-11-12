@@ -30,6 +30,7 @@ public class BobClientTests
 	[Fact]
 	public async Task RegisterOutputTestAsync()
 	{
+		var rnd = TestRandom.Get();
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 		using CancellationTokenSource silentLeave = new();
@@ -40,10 +41,10 @@ public class BobClientTests
 		var round = WabiSabiTestFactory.CreateRound(config);
 		var km = ServiceFactory.CreateKeyManager("");
 		var key = BitcoinFactory.CreateHdPubKey(km);
-		SmartCoin coin1 = BitcoinFactory.CreateSmartCoin(key, Money.Coins(2m));
+		SmartCoin coin1 = BitcoinFactory.CreateSmartCoin(rnd, key, Money.Coins(2m));
 
-		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin1.Coin);
-		using Arena arena = await ArenaTestFactory.From(config).With(mockRpc).CreateAndStartAsync(round);
+		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin1.Coin);
+		using Arena arena = await ArenaTestFactory.From(config).With(mockRpc).CreateAndStartAsync(rnd, round);
 		await arena.TriggerAndWaitRoundAsync(token);
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());

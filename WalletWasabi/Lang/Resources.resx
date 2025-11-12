@@ -2193,4 +2193,28 @@
   <data name="CanSelectPrivateCoinsInCoinJoinCoinSelectorToolTip" xml:space="preserve">
     <value>The selection is allowed to contain already private coins.</value>
   </data>
+  <data name="SecretHuntViewModelTitle" xml:space="preserve">
+    <value>Secret Hunt</value>
+  </data>
+  <data name="SecretHuntViewModelCaption" xml:space="preserve">
+    <value>The current status of the Secret Hunt events.</value>
+  </data>
+  <data name="SecretHuntViewModelKeywords" xml:space="preserve">
+    <value>Secret, Hunt, Coinjoin</value>
+  </data>
+  <data name="SecretHuntSecret" xml:space="preserve">
+    <value>A secret word or sentence.</value>
+  </data>
+  <data name="SecretHuntExtraSecret" xml:space="preserve">
+    <value>Extra secret that is revealed when all the normal secrets are known.</value>
+  </data>
+  <data name="SecretHuntEventUnsolved" xml:space="preserve">
+    <value>This event is not solved yet.</value>
+  </data>
+  <data name="SecretHuntEventSolved" xml:space="preserve">
+    <value>For this event all the secrets and the extra secret are revealed. It's up to you what you do with it.</value>
+  </data>
+  <data name="SecretHuntSettingsEnable" xml:space="preserve">
+    <value>Enable/disable the use of this wallet for Secret Hunt.</value>
+  </data>
 </root>

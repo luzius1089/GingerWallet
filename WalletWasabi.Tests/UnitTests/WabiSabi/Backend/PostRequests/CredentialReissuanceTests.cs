@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -15,12 +16,13 @@ public class CredentialReissuanceTest
 	[Fact]
 	public async Task ReissueExactDeltaAmountAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
-		var alice = WabiSabiTestFactory.CreateAlice(round);
+		var alice = WabiSabiTestFactory.CreateAlice(rnd, round);
 		round.Alices.Add(alice);
-		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(rnd, round);
 
 		// Step 1. Create credentials
 		var (amClient, vsClient, amIssuer, vsIssuer, amZeroCredentials, vsZeroCredentials) = WabiSabiTestFactory.CreateWabiSabiClientsAndIssuers(round);

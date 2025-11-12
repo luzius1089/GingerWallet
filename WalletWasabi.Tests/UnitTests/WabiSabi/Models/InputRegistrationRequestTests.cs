@@ -8,6 +8,7 @@ using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -21,9 +22,10 @@ public class InputRegistrationRequestTests
 	[Fact]
 	public void EqualityTest()
 	{
-		uint256 roundId = BitcoinFactory.CreateUint256();
-		uint256 roundHash = BitcoinFactory.CreateUint256();
-		OutPoint outPoint = BitcoinFactory.CreateOutPoint();
+		var rnd = TestRandom.Get();
+		uint256 roundId = BitcoinFactory.CreateUint256(rnd);
+		uint256 roundHash = BitcoinFactory.CreateUint256(rnd);
+		OutPoint outPoint = BitcoinFactory.CreateOutPoint(rnd);
 
 		using Key key = new();
 
@@ -49,7 +51,7 @@ public class InputRegistrationRequestTests
 
 		// Request #3.
 		InputRegistrationRequest request3 = new(
-			RoundId: BitcoinFactory.CreateUint256(), // Intentionally changed.
+			RoundId: BitcoinFactory.CreateUint256(rnd), // Intentionally changed.
 			Input: outPoint,
 			OwnershipProof: CreateOwnershipProof(key, roundHash),
 			ZeroAmountCredentialRequests: GetZeroCredentialsRequest(),
@@ -61,7 +63,7 @@ public class InputRegistrationRequestTests
 		// Request #4.
 		InputRegistrationRequest request4 = new(
 			RoundId: roundId,
-			Input: BitcoinFactory.CreateOutPoint(), // Intentionally changed.
+			Input: BitcoinFactory.CreateOutPoint(rnd), // Intentionally changed.
 			OwnershipProof: CreateOwnershipProof(key, roundHash),
 			ZeroAmountCredentialRequests: GetZeroCredentialsRequest(),
 			ZeroVsizeCredentialRequests: GetZeroCredentialsRequest()
@@ -73,7 +75,7 @@ public class InputRegistrationRequestTests
 		InputRegistrationRequest request5 = new(
 			RoundId: roundId,
 			Input: outPoint,
-			OwnershipProof: CreateOwnershipProof(key, roundHash: BitcoinFactory.CreateUint256()), // Intentionally changed.
+			OwnershipProof: CreateOwnershipProof(key, roundHash: BitcoinFactory.CreateUint256(rnd)), // Intentionally changed.
 			ZeroAmountCredentialRequests: GetZeroCredentialsRequest(),
 			ZeroVsizeCredentialRequests: GetZeroCredentialsRequest()
 		);

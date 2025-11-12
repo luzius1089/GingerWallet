@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -146,7 +147,7 @@ public class SmartTransactionTests
 	[Fact]
 	public void SmartTransactionVirtualMembersEquals()
 	{
-		SmartTransaction st = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 1);
+		SmartTransaction st = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 0, 1, 1, 1);
 
 		var originalSentBytes = st.WalletInputs.First().HdPubKey.PubKey.ToBytes();
 		var virtualSentBytes = st.WalletVirtualInputs.First().Id;
@@ -205,6 +206,7 @@ public class SmartTransactionTests
 	[Fact]
 	public void SmartTransactionVirtualWalletInputMerge()
 	{
+		var rnd = TestRandom.Get();
 		var km = ServiceFactory.CreateKeyManager("");
 		var network = km.GetNetwork();
 		HdPubKey hdPubKey = BitcoinFactory.CreateHdPubKey(km);
@@ -213,8 +215,8 @@ public class SmartTransactionTests
 
 		SmartTransaction st1 = new(t, 0);
 
-		var sc = BitcoinFactory.CreateSmartCoin(hdPubKey, Money.Coins(1));
-		var sc2 = BitcoinFactory.CreateSmartCoin(hdPubKey, Money.Coins(2));
+		var sc = BitcoinFactory.CreateSmartCoin(rnd, hdPubKey, Money.Coins(1));
+		var sc2 = BitcoinFactory.CreateSmartCoin(rnd, hdPubKey, Money.Coins(2));
 
 		st1.TryAddWalletInput(sc);
 		st1.TryAddWalletInput(sc2);
@@ -226,14 +228,15 @@ public class SmartTransactionTests
 	[Fact]
 	public void SmartTransactionVirtualWalletOutputMerge()
 	{
+		var rnd = TestRandom.Get();
 		var km = ServiceFactory.CreateKeyManager("");
 		var network = km.GetNetwork();
 		HdPubKey hdPubKey = BitcoinFactory.CreateHdPubKey(km);
 
 		Transaction t = Transaction.Create(network);
 
-		var sc = BitcoinFactory.CreateSmartCoin(t, hdPubKey, Money.Coins(1));
-		var sc2 = BitcoinFactory.CreateSmartCoin(t, hdPubKey, Money.Coins(2));
+		var sc = BitcoinFactory.CreateSmartCoin(rnd, t, hdPubKey, Money.Coins(1));
+		var sc2 = BitcoinFactory.CreateSmartCoin(rnd, t, hdPubKey, Money.Coins(2));
 		Assert.NotEqual(sc, sc2);
 
 		var st1 = sc.Transaction;

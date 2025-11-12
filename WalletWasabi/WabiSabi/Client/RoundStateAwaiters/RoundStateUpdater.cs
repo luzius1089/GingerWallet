@@ -55,6 +55,17 @@ public class RoundStateUpdater : PeriodicRunner
 		await TriggerAndWaitRoundAsync(timeout).ConfigureAwait(false);
 	}
 
+	public uint256 GetActiveRoundId()
+	{
+		var actives = RoundStates.Values.Where(x => x.RoundState.Phase != Phase.Ended && !x.RoundState.IsBlame).ToList();
+		if (actives.Count == 0)
+		{
+			return uint256.Zero;
+		}
+		var latest = actives.MaxBy(rs => rs.RoundState.InputRegistrationEnd);
+		return latest?.RoundState.Id ?? uint256.Zero;
+	}
+
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
 		if (DateTimeOffset.UtcNow - _lastRequestTime < _waitPeriod && _verifyRoundState)

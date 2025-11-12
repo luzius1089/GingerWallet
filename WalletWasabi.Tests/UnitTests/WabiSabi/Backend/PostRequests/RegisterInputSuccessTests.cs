@@ -29,17 +29,18 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task SuccessAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
@@ -50,14 +51,15 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task SuccessCustomCoordinatorIdentifierAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.CoordinatorIdentifier = "test";
 		var round = WabiSabiTestFactory.CreateRound(cfg, 1);
 
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 
@@ -78,19 +80,20 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task SuccessFromPreviousCoinJoinAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
 		var coinJoinIdStore = new CoinJoinIdStore();
 		coinJoinIdStore.TryAdd(coin.Outpoint.Hash);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).With(coinJoinIdStore).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).With(coinJoinIdStore).CreateAndStartAsync(rnd, round);
 
 		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);
@@ -104,19 +107,20 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task SuccessWithAliceUpdateIntraRoundAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 
 		using Key key = new();
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 		var coin = WabiSabiTestFactory.CreateCoin(key);
 
 		// Make sure an Alice have already been registered with the same input.
-		var preAlice = WabiSabiTestFactory.CreateAlice(coin, WabiSabiTestFactory.CreateOwnershipProof(key), round);
+		var preAlice = WabiSabiTestFactory.CreateAlice(coin, WabiSabiTestFactory.CreateOwnershipProof(rnd, key), round);
 		round.Alices.Add(preAlice);
 
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None).ConfigureAwait(false));
@@ -128,6 +132,7 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task TaprootSuccessAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.AllowP2trInputs = true;
 
@@ -135,12 +140,12 @@ public class RegisterInputSuccessTests
 
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id, ScriptPubKeyType.TaprootBIP86);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id, ScriptPubKeyType.TaprootBIP86);
 
 		var (resp, _) = await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None);
 		AssertSingleAliceSuccessfullyRegistered(round, minAliceDeadline, resp);

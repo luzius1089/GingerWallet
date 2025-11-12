@@ -7,6 +7,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -67,7 +68,7 @@ public class AllTransactionStoreTests
 		Assert.Empty(txStore.ConfirmedStore.GetTransactions());
 		Assert.Empty(txStore.ConfirmedStore.GetTransactionHashes());
 
-		uint256 txHash = BitcoinFactory.CreateSmartTransaction().GetHash();
+		uint256 txHash = BitcoinFactory.CreateSmartTransaction(TestRandom.Get()).GetHash();
 		Assert.False(txStore.Contains(txHash));
 		Assert.True(txStore.IsEmpty());
 		Assert.False(txStore.TryGetTransaction(txHash, out _));
@@ -102,7 +103,7 @@ public class AllTransactionStoreTests
 		Assert.Equal(3, txStore.ConfirmedStore.GetTransactionHashes().Count);
 		Assert.False(txStore.IsEmpty());
 
-		uint256 doesntContainTxHash = BitcoinFactory.CreateSmartTransaction().GetHash();
+		uint256 doesntContainTxHash = BitcoinFactory.CreateSmartTransaction(TestRandom.Get()).GetHash();
 		Assert.False(txStore.Contains(doesntContainTxHash));
 		Assert.False(txStore.TryGetTransaction(doesntContainTxHash, out _));
 
@@ -200,10 +201,11 @@ public class AllTransactionStoreTests
 	[MemberData(nameof(GetDifferentNetworkValues))]
 	public async Task DoesntUpdateAsync(Network network)
 	{
+		var rnd = TestRandom.Get();
 		await using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
 		await txStore.InitializeAsync();
 
-		var tx = BitcoinFactory.CreateSmartTransaction();
+		var tx = BitcoinFactory.CreateSmartTransaction(rnd);
 		Assert.False(txStore.TryUpdate(tx));
 
 		// Assert TryUpdate didn't modify anything.
@@ -214,7 +216,7 @@ public class AllTransactionStoreTests
 		Assert.Empty(txStore.ConfirmedStore.GetTransactions());
 		Assert.Empty(txStore.ConfirmedStore.GetTransactionHashes());
 
-		uint256 txid = BitcoinFactory.CreateSmartTransaction().GetHash();
+		uint256 txid = BitcoinFactory.CreateSmartTransaction(rnd).GetHash();
 		Assert.False(txStore.Contains(txid));
 		Assert.True(txStore.IsEmpty());
 		Assert.False(txStore.TryGetTransaction(txid, out _));

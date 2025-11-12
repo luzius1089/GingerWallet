@@ -5,6 +5,7 @@ using WalletWasabi.Models;
 using System.Linq;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using System.Text.Json.Serialization;
+using WalletWasabi.SecretHunt;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -76,6 +77,9 @@ public class WalletAttributes : IJsonOnSerializing
 
 	[JsonInclude]
 	private List<HdPubKey> HdPubKeys { get; set; } = new();
+
+	[JsonInclude]
+	public SecretHuntResults SecretHuntResults { get; set; } = new();
 
 	public void OnSerializing()
 	{

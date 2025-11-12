@@ -36,6 +36,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private double _valueLossRateNormal;
 	[AutoNotify] private double _targetCoinCountPerBucket;
 	[AutoNotify] private bool _useOldCoinSelectorAsFallback;
+	[AutoNotify] private bool _enableSecretHunt;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -45,6 +46,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_isDirty = isNewWallet;
 		IsCoinJoinPaused = isCoinJoinPaused;
 
+		_enableSecretHunt = _keyManager.EnableSecretHunt;
 		_autoCoinjoin = _keyManager.AutoCoinJoin;
 		_isCoinjoinProfileSelected = _keyManager.IsCoinjoinProfileSelected;
 		_preferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
@@ -73,6 +75,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
+				x => x.EnableSecretHunt,
 				x => x.AutoCoinjoin,
 				x => x.IsCoinjoinProfileSelected,
 				x => x.PreferPsbtWorkflow,
@@ -81,7 +84,7 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.RedCoinIsolation,
 				x => x.FeeRateMedianTimeFrameHours,
 				x => x.IsRecovering,
-				(_, _, _, _, _, _, _, _) => Unit.Default)
+				(_, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
@@ -132,6 +135,7 @@ public partial class WalletSettingsModel : ReactiveObject
 
 	private void SetValues()
 	{
+		_keyManager.EnableSecretHunt = EnableSecretHunt;
 		_keyManager.AutoCoinJoin = AutoCoinjoin;
 		_keyManager.IsCoinjoinProfileSelected = IsCoinjoinProfileSelected;
 		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;

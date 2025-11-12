@@ -159,7 +159,7 @@ public class TorHttpPoolTests
 		string[] expectedResponse = new[]
 		{
 			"GET / HTTP/1.1",
-			"Accept-Encoding:gzip",
+			"Accept-Encoding:br",
 			"Host:somesite.com",
 			""
 		};
@@ -249,7 +249,7 @@ public class TorHttpPoolTests
 			string[] expectedServerResponse1 = new[]
 			{
 				"GET /redirect/123456 HTTP/1.1",
-				"Accept-Encoding:gzip",
+				"Accept-Encoding:br",
 				"Host:api.github.com",
 				""
 			};
@@ -297,7 +297,7 @@ public class TorHttpPoolTests
 				string[] expectedServerResponse2 = new[]
 				{
 				"GET /github-production-release-asset-2e65be/55341469/84261958-b5b5-45dc-a1fe-3bd96253e120?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20221211%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20221211T094726Z&X-Amz-Expires=300&X-Amz-Signature=bee3014421243a64ae1d2ffc7ca5e3693cbbd49b08b386df7bd7569494d04a7f&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=55341469&response-content-disposition=attachment%3B%20filename%3DWasabi-2.0.1.4.msi&response-content-type=application%2Foctet-stream HTTP/1.1",
-				"Accept-Encoding:gzip",
+				"Accept-Encoding:br",
 				"Host:objects.githubusercontent.com",
 				""
 			};

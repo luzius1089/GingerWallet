@@ -66,7 +66,7 @@ public class CoinJoinMempoolManagerTests
 		finally
 		{
 			await services.StopAllAsync();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 }

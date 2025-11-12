@@ -1,3 +1,4 @@
+using GingerCommon.Crypto.Random;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionBuilding;
@@ -26,7 +28,7 @@ public class ChangelessTransactionCoinSelectorTests
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 
 		KeyManager km = ServiceFactory.CreateKeyManager();
-		IEnumerable<SmartCoin> coins = GenerateDummySmartCoins(km, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
+		IEnumerable<SmartCoin> coins = GenerateDummySmartCoins(TestRandom.Get(), km, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
 
 		var coinsByScript = coins
 			.GroupBy(coin => coin.ScriptPubKey)
@@ -56,7 +58,7 @@ public class ChangelessTransactionCoinSelectorTests
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 
 		KeyManager km = ServiceFactory.CreateKeyManager();
-		List<SmartCoin> coins = GenerateDummySmartCoins(km, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
+		List<SmartCoin> coins = GenerateDummySmartCoins(TestRandom.Get(), km, 6_025, 6_561, 8_192, 13_122, 50_000, 100_000, 196_939, 524_288);
 
 		var coinsByScript = coins
 			.GroupBy(coin => coin.ScriptPubKey)
@@ -88,7 +90,7 @@ public class ChangelessTransactionCoinSelectorTests
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
 
 		KeyManager km = ServiceFactory.CreateKeyManager();
-		List<SmartCoin> coins = GenerateDummySmartCoins(km, 150_000);
+		List<SmartCoin> coins = GenerateDummySmartCoins(TestRandom.Get(), km, 150_000);
 
 		var coinsByScript = coins
 			.GroupBy(coin => coin.ScriptPubKey)
@@ -114,6 +116,7 @@ public class ChangelessTransactionCoinSelectorTests
 	[Fact]
 	public async void BnBRespectScriptPubKeyPrivacyRuleAsync()
 	{
+		var rnd = TestRandom.Get();
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5));
 
 		KeyManager km = ServiceFactory.CreateKeyManager();
@@ -124,15 +127,15 @@ public class ChangelessTransactionCoinSelectorTests
 		List<SmartCoin> availableCoins = new()
 		{
 			// Group #1.
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(rnd, constantHdPubKey, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(rnd, constantHdPubKey, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(rnd, constantHdPubKey, Money.Satoshis(10000)),
 
 			// Group #2.
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10000)),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10000)),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(10000)),
-			BitcoinFactory.CreateSmartCoin(constantHdPubKey2, Money.Satoshis(5000)),
+			BitcoinFactory.CreateSmartCoin(rnd, constantHdPubKey2, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(rnd, constantHdPubKey2, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(rnd, constantHdPubKey2, Money.Satoshis(10000)),
+			BitcoinFactory.CreateSmartCoin(rnd, constantHdPubKey2, Money.Satoshis(5000)),
 		};
 
 		// First test case where we show that we are not mixing the script pub keys and we spend the address reused coins together.
@@ -192,13 +195,13 @@ public class ChangelessTransactionCoinSelectorTests
 	}
 
 	/// <remarks>These smart coins are from an invalid transaction but we are interested only in smart coins' amounts.</remarks>
-	private List<SmartCoin> GenerateDummySmartCoins(KeyManager km, params long[] values)
+	private List<SmartCoin> GenerateDummySmartCoins(GingerRandom rnd, KeyManager km, params long[] values)
 	{
 		List<SmartCoin> result = new(capacity: values.Length);
 
 		for (uint i = 0; i < values.Length; i++)
 		{
-			result.Add(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(values[i])));
+			result.Add(BitcoinFactory.CreateSmartCoin(rnd, BitcoinFactory.CreateHdPubKey(km), Money.Satoshis(values[i])));
 		}
 
 		return result.OrderByDescending(x => x.Amount.Satoshi).ToList();

@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -18,6 +19,7 @@ public class AliceTimeoutTests
 	[Fact]
 	public async Task AliceRegistrationTimesOutAsync()
 	{
+		var rnd = TestRandom.Get();
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5)); // Sanity timeout for the unit test.
 		using CancellationTokenSource silentLeave = new();
 		var silentLeaveToken = silentLeave.Token;
@@ -27,10 +29,10 @@ public class AliceTimeoutTests
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 		var km = ServiceFactory.CreateKeyManager(password: "");
 		var key = BitcoinFactory.CreateHdPubKey(km);
-		var smartCoin = BitcoinFactory.CreateSmartCoin(key, 10m);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(smartCoin.Coin);
+		var smartCoin = BitcoinFactory.CreateSmartCoin(rnd, key, 10m);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, smartCoin.Coin);
 
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 
 		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), ["CoinJoinCoordinatorIdentifier"], arena);
@@ -72,16 +74,17 @@ public class AliceTimeoutTests
 	[Fact]
 	public async Task AliceDoesntTimeoutInConnectionConfirmationAsync()
 	{
+		var rnd = TestRandom.Get();
 		// Alice does not time out when it's not input registration anymore,
 		// even though the deadline is reached.
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 		round.SetPhase(Phase.ConnectionConfirmation);
-		var alice = WabiSabiTestFactory.CreateAlice(round);
+		var alice = WabiSabiTestFactory.CreateAlice(rnd, round);
 		round.Alices.Add(alice);
-		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(rnd, round);
 
-		var req = WabiSabiTestFactory.CreateConnectionConfirmationRequest(round);
+		var req = WabiSabiTestFactory.CreateConnectionConfirmationRequest(rnd, round);
 
 		Assert.Single(round.Alices);
 		DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -98,15 +101,16 @@ public class AliceTimeoutTests
 	{
 		// Alice does not time out if input registration timed out,
 		// even though the deadline is reached and still in input reg.
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
 
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var alice = WabiSabiTestFactory.CreateAlice(round);
+		var alice = WabiSabiTestFactory.CreateAlice(rnd, round);
 		round.Alices.Add(alice);
-		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(rnd, round);
 
-		var req = WabiSabiTestFactory.CreateConnectionConfirmationRequest(round);
+		var req = WabiSabiTestFactory.CreateConnectionConfirmationRequest(rnd, round);
 
 		Assert.Single(round.Alices);
 		DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -123,17 +127,18 @@ public class AliceTimeoutTests
 	{
 		// Alice does not time out if input reg is full with alices,
 		// even though the deadline is reached and still in input reg.
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.MaxInputCountByRound = 3;
 
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var alice = WabiSabiTestFactory.CreateAlice(round);
+		var alice = WabiSabiTestFactory.CreateAlice(rnd, round);
 		round.Alices.Add(alice);
-		round.Alices.Add(WabiSabiTestFactory.CreateAlice(round));
-		round.Alices.Add(WabiSabiTestFactory.CreateAlice(round));
-		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(round);
+		round.Alices.Add(WabiSabiTestFactory.CreateAlice(rnd, round));
+		round.Alices.Add(WabiSabiTestFactory.CreateAlice(rnd, round));
+		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(rnd, round);
 
-		var req = WabiSabiTestFactory.CreateConnectionConfirmationRequest(round);
+		var req = WabiSabiTestFactory.CreateConnectionConfirmationRequest(rnd, round);
 
 		Assert.Equal(3, round.Alices.Count);
 		DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);
@@ -149,13 +154,14 @@ public class AliceTimeoutTests
 	public async Task AliceDeadlineUpdatedAsync()
 	{
 		// Alice's deadline is updated by connection confirmation.
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var alice = WabiSabiTestFactory.CreateAlice(round);
+		var alice = WabiSabiTestFactory.CreateAlice(rnd, round);
 		round.Alices.Add(alice);
-		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(rnd, round);
 
-		var req = WabiSabiTestFactory.CreateConnectionConfirmationRequest(round);
+		var req = WabiSabiTestFactory.CreateConnectionConfirmationRequest(rnd, round);
 
 		Assert.Single(round.Alices);
 		DateTimeOffset preDeadline = DateTimeOffset.UtcNow - TimeSpan.FromMilliseconds(1);

@@ -2191,4 +2191,28 @@
   <data name="CanSelectPrivateCoinsInCoinJoinCoinSelectorToolTip" xml:space="preserve">
     <value>A seleção pode conter moedas já privadas.</value>
   </data>
+  <data name="SecretHuntViewModelTitle" xml:space="preserve">
+    <value>Caça aos Segredos</value>
+  </data>
+  <data name="SecretHuntViewModelCaption" xml:space="preserve">
+    <value>O status atual dos eventos da Caça aos Segredos.</value>
+  </data>
+  <data name="SecretHuntViewModelKeywords" xml:space="preserve">
+    <value>Segredo, Caça, Coinjoin</value>
+  </data>
+  <data name="SecretHuntSecret" xml:space="preserve">
+    <value>Um Segredo – uma palavra ou frase.</value>
+  </data>
+  <data name="SecretHuntExtraSecret" xml:space="preserve">
+    <value>Um Segredo Extra que é revelado quando todos os Segredos normais são conhecidos.</value>
+  </data>
+  <data name="SecretHuntEventUnsolved" xml:space="preserve">
+    <value>Este evento ainda não foi resolvido.</value>
+  </data>
+  <data name="SecretHuntEventSolved" xml:space="preserve">
+    <value>Para este evento, todos os Segredos e o Segredo Extra foram revelados. Cabe a você decidir o que fazer com eles.</value>
+  </data>
+  <data name="SecretHuntSettingsEnable" xml:space="preserve">
+    <value>Ativar ou desativar o uso desta carteira para a Caça aos Segredos.</value>
+  </data>
 </root>

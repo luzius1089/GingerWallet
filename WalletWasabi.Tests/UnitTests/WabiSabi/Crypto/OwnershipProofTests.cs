@@ -1,6 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Crypto;
@@ -13,8 +14,9 @@ public class OwnershipProofTests
 	[Fact]
 	public void EqualityTest()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
-		uint256 roundHash = BitcoinFactory.CreateUint256();
+		uint256 roundHash = BitcoinFactory.CreateUint256(rnd);
 
 		// Request #1.
 		OwnershipProof request1 = CreateOwnershipProof(key, roundHash);
@@ -30,7 +32,7 @@ public class OwnershipProofTests
 		Assert.NotEqual(request1, request3);
 
 		// Request #4.
-		OwnershipProof request4 = CreateOwnershipProof(key, roundHash: BitcoinFactory.CreateUint256()); // Round hash intentionally changed.
+		OwnershipProof request4 = CreateOwnershipProof(key, roundHash: BitcoinFactory.CreateUint256(rnd)); // Round hash intentionally changed.
 		Assert.NotEqual(request1, request4);
 	}
 

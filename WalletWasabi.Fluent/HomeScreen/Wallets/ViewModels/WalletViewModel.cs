@@ -131,6 +131,8 @@ public partial class WalletViewModel : RoutableViewModel
 
 		SignMessageCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().SignMessage(WalletModel));
 
+		SecretHuntCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().SecretHunt(WalletModel));
+
 		CoinjoinPlayerViewModel = new CoinjoinPlayerViewModel(WalletModel, Settings);
 
 		Tiles = GetTiles().ToList();
@@ -178,6 +180,8 @@ public partial class WalletViewModel : RoutableViewModel
 	public ICommand WalletInfoCommand { get; private set; }
 
 	public ICommand SignMessageCommand { get; private set; }
+
+	public ICommand SecretHuntCommand { get; private set; }
 
 	public ICommand WalletSettingsCommand { get; private set; }
 
@@ -278,7 +282,8 @@ public partial class WalletViewModel : RoutableViewModel
 		{
 			SendCommand.ExecuteIfCan();
 			return Task.CompletedTask;
-		}, Resources.Wallet, Resources.AboutViewModelKeywords.ToKeywords()) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
+		}, Resources.Wallet, Resources.AboutViewModelKeywords.ToKeywords())
+		{ Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()

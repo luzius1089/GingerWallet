@@ -52,6 +52,15 @@
                   </MultiBinding>
                 </Separator.IsVisible>
               </Separator>
+              <MenuItem Header="{x:Static lang:Resources.SecretHuntViewModelTitle}"
+                        Command="{Binding SecretHuntCommand}">
+                <MenuItem.IsVisible>
+                  <Binding Path="WalletModel.IsWatchOnlyWallet" Converter="{x:Static BoolConverters.Not}" />
+                </MenuItem.IsVisible>
+                <MenuItem.Icon>
+                  <PathIcon Data="{StaticResource info_regular}" />
+                </MenuItem.Icon>
+              </MenuItem>
               <MenuItem Header="{x:Static lang:Resources.SignMessage}"
                         Command="{Binding SignMessageCommand}">
                 <MenuItem.IsVisible>
@@ -94,7 +103,6 @@
                      Width="11" Height="11"
                      Stroke="{DynamicResource RegionBrush}" StrokeThickness="2"
                      Fill="{DynamicResource WarningMessageForeground}" />
-
           </Panel>
 
           <!-- Buy -->
@@ -121,7 +129,6 @@
                      Width="11" Height="11"
                      Stroke="{DynamicResource RegionBrush}" StrokeThickness="2"
                      Fill="{DynamicResource WarningMessageForeground}" />
-
           </Panel>
         </StackPanel>
 
@@ -183,8 +190,6 @@
             <TextBlock Text="{x:Static lang:Resources.WalletReceive}" />
           </Button>
         </StackPanel>
-
-
       </StackPanel>
     </ContentArea.TopContent>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">

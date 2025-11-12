@@ -30,6 +30,7 @@ using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WabiSabi.Crypto.Randomness;
 using System.Runtime.CompilerServices;
 using WalletWasabi.Tests.TestCommon;
+using GingerCommon.Crypto.Random;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -51,23 +52,23 @@ public static class WabiSabiTestFactory
 			new TxOut(amount, key.PubKey.GetScriptPubKey(scriptPubKeyType)));
 	}
 
-	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(Key? key = null, Money? amount = null, uint256? roundId = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	public static Tuple<Coin, OwnershipProof> CreateCoinWithOwnershipProof(GingerRandom rnd, Key? key = null, Money? amount = null, uint256? roundId = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		key ??= new();
 		var coin = CreateCoin(key, amount, scriptPubKeyType);
 		roundId ??= uint256.One;
-		var ownershipProof = CreateOwnershipProof(key, roundId);
+		var ownershipProof = CreateOwnershipProof(rnd, key, roundId);
 		return new Tuple<Coin, OwnershipProof>(coin, ownershipProof);
 	}
 
 	public static CoinJoinInputCommitmentData CreateCommitmentData(uint256? roundId = null)
 		=> new(CoordinatorIdentifier, roundId ?? uint256.One);
 
-	public static OwnershipProof CreateOwnershipProof(Key key, uint256? roundHash = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+	public static OwnershipProof CreateOwnershipProof(GingerRandom rnd, Key key, uint256? roundHash = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 		=> OwnershipProof.GenerateCoinJoinInputProof(
 			key,
 			GetOwnershipIdentifier(key.PubKey.GetScriptPubKey(scriptPubKeyType)),
-			new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundHash ?? BitcoinFactory.CreateUint256()),
+			new CoinJoinInputCommitmentData(CoordinatorIdentifier, roundHash ?? BitcoinFactory.CreateUint256(rnd)),
 			scriptPubKeyType);
 
 	public static OwnershipIdentifier GetOwnershipIdentifier(Script scriptPubKey)
@@ -93,7 +94,7 @@ public static class WabiSabiTestFactory
 				Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize // enough vsize for one input and one output
 		}, seed, callerFilePath, callerMemberName);
 
-	public static MockRpcClient CreatePreconfiguredRpcClient(params Coin[] coins)
+	public static MockRpcClient CreatePreconfiguredRpcClient(GingerRandom rnd, params Coin[] coins)
 	{
 		using Key key = new();
 		var mockRpc = new MockRpcClient();
@@ -119,7 +120,7 @@ public static class WabiSabiTestFactory
 			};
 		};
 		mockRpc.OnGetRawTransactionAsync = (_, _) =>
-			Task.FromResult(BitcoinFactory.CreateTransaction());
+			Task.FromResult(BitcoinFactory.CreateTransaction(rnd));
 
 		mockRpc.OnEstimateSmartFeeAsync = (_, _) =>
 			Task.FromResult(new EstimateSmartFeeResponse
@@ -140,22 +141,22 @@ public static class WabiSabiTestFactory
 	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
 		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
-	public static Alice CreateAlice(Key key, Money amount, Round round, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
-		=> CreateAlice(CreateCoin(key, amount, scriptPubKeyType), CreateOwnershipProof(key, round.Id, scriptPubKeyType), round);
+	public static Alice CreateAlice(GingerRandom rnd, Key key, Money amount, Round round, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+		=> CreateAlice(CreateCoin(key, amount, scriptPubKeyType), CreateOwnershipProof(rnd, key, round.Id, scriptPubKeyType), round);
 
-	public static Alice CreateAlice(Money amount, Round round)
+	public static Alice CreateAlice(GingerRandom rnd, Money amount, Round round)
 	{
 		using var key = new Key();
-		return CreateAlice(key, amount, round);
+		return CreateAlice(rnd, key, amount, round);
 	}
 
-	public static Alice CreateAlice(Key key, Round round, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
-		=> CreateAlice(key, Money.Coins(1), round, scriptPubKeyType);
+	public static Alice CreateAlice(GingerRandom rnd, Key key, Round round, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
+		=> CreateAlice(rnd, key, Money.Coins(1), round, scriptPubKeyType);
 
-	public static Alice CreateAlice(Round round)
+	public static Alice CreateAlice(GingerRandom rnd, Round round)
 	{
 		using var key = new Key();
-		return CreateAlice(key, Money.Coins(1), round);
+		return CreateAlice(rnd, key, Money.Coins(1), round);
 	}
 
 	public static ArenaClient CreateArenaClient(Arena arena, Round? round = null)
@@ -168,7 +169,7 @@ public static class WabiSabiTestFactory
 			arena);
 	}
 
-	public static InputRegistrationRequest CreateInputRegistrationRequest(Round round, Key? key = null, OutPoint? prevout = null)
+	public static InputRegistrationRequest CreateInputRegistrationRequest(GingerRandom rnd, Round round, Key? key = null, OutPoint? prevout = null)
 	{
 		(var amClient, var vsClient, _, _, _, _) = CreateWabiSabiClientsAndIssuers(round);
 		var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
@@ -177,8 +178,8 @@ public static class WabiSabiTestFactory
 		using var newkey = new Key();
 		return new(
 			round.Id,
-			prevout ?? BitcoinFactory.CreateOutPoint(),
-			CreateOwnershipProof(key ?? newkey, round.Id),
+			prevout ?? BitcoinFactory.CreateOutPoint(rnd),
+			CreateOwnershipProof(rnd, key ?? newkey, round.Id),
 			zeroAmountCredentialRequest,
 			zeroVsizeCredentialRequest);
 	}
@@ -221,11 +222,11 @@ public static class WabiSabiTestFactory
 			vsClient.HandleResponse(vsCredResp, vsVal));
 	}
 
-	public static (Alice alice, RealCredentialsRequest amountRequest, RealCredentialsRequest vsizeRequest) CreateRealCredentialRequests(Round round, Money? amount = null, long? vsize = null)
+	public static (Alice alice, RealCredentialsRequest amountRequest, RealCredentialsRequest vsizeRequest) CreateRealCredentialRequests(GingerRandom rnd, Round round, Money? amount = null, long? vsize = null)
 	{
 		var (amClient, vsClient, _, _, amZeroCredentials, vsZeroCredentials) = CreateWabiSabiClientsAndIssuers(round);
 
-		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
+		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(rnd, round);
 		var (realAmountCredentialRequest, _) = amClient.CreateRequest(
 			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi },
 			amZeroCredentials,
@@ -238,9 +239,9 @@ public static class WabiSabiTestFactory
 		return (alice, realAmountCredentialRequest, realVsizeCredentialRequest);
 	}
 
-	public static ConnectionConfirmationRequest CreateConnectionConfirmationRequest(Round round)
+	public static ConnectionConfirmationRequest CreateConnectionConfirmationRequest(GingerRandom rnd, Round round)
 	{
-		var (alice, realAmountCredentialRequest, realVsizeCredentialRequest) = CreateRealCredentialRequests(round);
+		var (alice, realAmountCredentialRequest, realVsizeCredentialRequest) = CreateRealCredentialRequests(rnd, round);
 
 		var (amClient, vsClient, _, _, _, _) = CreateWabiSabiClientsAndIssuers(round);
 		var (zeroAmountCredentialRequest, _) = amClient.CreateRequestForZeroAmount();
@@ -255,11 +256,11 @@ public static class WabiSabiTestFactory
 			realVsizeCredentialRequest);
 	}
 
-	public static OutputRegistrationRequest CreateOutputRegistrationRequest(Round round, Script? script = null, int? vsize = null)
+	public static OutputRegistrationRequest CreateOutputRegistrationRequest(GingerRandom rnd, Round round, Script? script = null, int? vsize = null)
 	{
 		var (amClient, vsClient, amIssuer, vsIssuer, amZeroCredentials, vsZeroCredentials) = CreateWabiSabiClientsAndIssuers(round);
 
-		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
+		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(rnd, round);
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
 			new[] { alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi },
 			amZeroCredentials, // FIXME doesn't make much sense
@@ -310,13 +311,13 @@ public static class WabiSabiTestFactory
 			InsecureRandom.Instance);
 	}
 
-	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
+	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(GingerRandom rnd, KeyManager? keyManager = null)
 	{
 		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
 		var keyChain = new KeyChain(km, new Kitchen(""));
 
-		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
-		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
+		var smartCoin1 = BitcoinFactory.CreateSmartCoin(rnd, BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
+		var smartCoin2 = BitcoinFactory.CreateSmartCoin(rnd, BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
 		return (keyChain, smartCoin1, smartCoin2);
 	}
 

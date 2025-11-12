@@ -3,6 +3,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis;
@@ -16,7 +17,7 @@ public class ReceiveAnonScoreTests
 	public void NormalReceive()
 	{
 		var analyser = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(1, 1, 0, 1);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 1, 1, 0, 1);
 
 		analyser.Analyze(tx);
 
@@ -28,7 +29,7 @@ public class ReceiveAnonScoreTests
 	public void WholeCoinReceive()
 	{
 		var analyser = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(1, 0, 0, 1);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 1, 0, 0, 1);
 
 		analyser.Analyze(tx);
 
@@ -40,7 +41,7 @@ public class ReceiveAnonScoreTests
 	public void CoinjoinReceive()
 	{
 		var analyser = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(10, Enumerable.Repeat(Money.Coins(1m), 9), Enumerable.Empty<(Money, int)>(), new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 10, Enumerable.Repeat(Money.Coins(1m), 9), Enumerable.Empty<(Money, int)>(), new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
 		analyser.Analyze(tx);
 

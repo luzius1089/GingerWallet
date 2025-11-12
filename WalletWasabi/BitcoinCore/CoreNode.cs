@@ -285,7 +285,8 @@ public class CoreNode
 	}
 
 	/// <param name="onlyOwned">Only stop if this node owns the process.</param>
-	public async Task<bool> TryStopAsync(bool onlyOwned = true)
+	/// /// <param name="waitBeforeKillInSec">Always kill the owned process if wait time is >=0 and ellapsed.</param>
+	public async Task<bool> TryStopAsync(bool onlyOwned = true, int waitBeforeKillInSec = -1)
 	{
 		await DisposeAsync().ConfigureAwait(false);
 
@@ -303,8 +304,10 @@ public class CoreNode
 		{
 			try
 			{
-				await bridge.StopAsync(onlyOwned).ConfigureAwait(false);
-				Logger.LogInfo("Stopped.");
+				DateTimeOffset now = DateTimeOffset.UtcNow;
+				await bridge.StopAsync(onlyOwned, waitBeforeKillInSec).ConfigureAwait(false);
+				TimeSpan ellapsed = DateTimeOffset.UtcNow - now;
+				Logger.LogInfo($"Stopped in {ellapsed.TotalSeconds:F2} sec.");
 				return true;
 			}
 			catch (Exception ex)

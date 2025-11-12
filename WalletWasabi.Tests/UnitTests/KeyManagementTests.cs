@@ -2,9 +2,11 @@ using NBitcoin;
 using System.IO;
 using System.Linq;
 using System.Security;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.TestCommon;
@@ -125,12 +127,12 @@ public class KeyManagementTests
 
 		manager.ToFile(); // assert it does not throw
 
-		void Generate500keys(ScriptPubKeyType scriptPubKeyType)
+		void Generate500keys(ScriptPubKeyType scriptPubKeyType, WasabiRandom rnd)
 		{
 			for (int i = 0; i < 500; i++)
 			{
 				var isInternal = Random.Shared.Next(2) == 0;
-				var label = RandomString.AlphaNumeric(21);
+				var label = rnd.GetString(21, Constants.AlphaNumericCharacters);
 				var keyState = (KeyState)Random.Shared.Next(3);
 				manager.GenerateNewKey(label, keyState, isInternal, scriptPubKeyType);
 			}
@@ -138,8 +140,9 @@ public class KeyManagementTests
 			manager.ToFile();
 		}
 
-		Generate500keys(ScriptPubKeyType.Segwit);
-		Generate500keys(ScriptPubKeyType.TaprootBIP86);
+		var rnd = TestRandom.Wasabi();
+		Generate500keys(ScriptPubKeyType.Segwit, rnd);
+		Generate500keys(ScriptPubKeyType.TaprootBIP86, rnd);
 
 		Assert.True(File.Exists(filePath));
 
@@ -173,10 +176,11 @@ public class KeyManagementTests
 		var k1 = manager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, true);
 		Assert.Equal(LabelsArray.Empty, k1.Labels);
 
+		var rnd = TestRandom.Wasabi();
 		for (int i = 0; i < 1000; i++)
 		{
 			var isInternal = Random.Shared.Next(2) == 0;
-			var label = RandomString.AlphaNumeric(21);
+			var label = rnd.GetString(21, Constants.AlphaNumericCharacters);
 			var keyState = (KeyState)Random.Shared.Next(3);
 			var generatedKey = manager.GenerateNewKey(label, keyState, isInternal);
 

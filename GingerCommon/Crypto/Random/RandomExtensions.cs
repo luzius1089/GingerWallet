@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace GingerCommon.Crypto.Random;
 
@@ -16,5 +19,15 @@ public static class RandomExtensions
 			list[n] = value;
 		}
 		return list;
+	}
+
+	public static void GenerateSeed(Span<byte> seed, ReadOnlySpan<byte> seedArray)
+	{
+		SHA256.HashData(seedArray, seed);
+	}
+
+	public static void GenerateSeed(Span<byte> seed, string seedString)
+	{
+		SHA256.HashData(Encoding.UTF8.GetBytes(seedString), seed);
 	}
 }

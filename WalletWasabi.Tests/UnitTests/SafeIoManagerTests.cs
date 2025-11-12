@@ -1,3 +1,4 @@
+using GingerCommon.Crypto.Random;
 using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.IO;
@@ -5,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Tests.TestCommon;
@@ -23,11 +23,11 @@ public class SafeIoManagerTests
 	{
 		var file = Path.Combine(TestDirectory.Get(), "file1.dat");
 
+		var rnd = TestRandom.Wasabi();
 		List<string> lines = new();
 		for (int i = 0; i < 1000; i++)
 		{
-			string line = RandomString.AlphaNumeric(100);
-
+			string line = rnd.GetString(100, Constants.AlphaNumericCharacters);
 			lines.Add(line);
 		}
 
@@ -52,10 +52,7 @@ public class SafeIoManagerTests
 
 			for (int i = 0; i < lines1.Length; i++)
 			{
-				string line = lines2[i];
-				var readLine = lines1[i];
-
-				if (!line.Equals(readLine))
+				if (lines1[i] != lines2[i])
 				{
 					return false;
 				}
@@ -105,11 +102,7 @@ public class SafeIoManagerTests
 
 		// TryReplace test.
 		var dummyFilePath = $"{ioman1.FilePath}dummy";
-		var dummyContent = new string[]
-		{
-			"banana",
-			"peach"
-		};
+		string[] dummyContent = ["banana", "peach"];
 		await File.WriteAllLinesAsync(dummyFilePath, dummyContent);
 
 		await ioman1.WriteAllLinesAsync(lines);
@@ -138,22 +131,22 @@ public class SafeIoManagerTests
 		IoHelpers.EnsureContainingDirectoryExists(ioman.FilePath);
 		File.Create(ioman.FilePath).Dispose();
 
-		static string RandomString()
+		static string RandomString(GingerRandom rnd)
 		{
 			StringBuilder builder = new();
 			char ch;
-			for (int i = 0; i < Random.Shared.Next(10, 100); i++)
+			for (int i = 0, len = rnd.GetInt(10, 100); i < len; i++)
 			{
-				ch = Convert.ToChar(Convert.ToInt32(Math.Floor((26 * Random.Shared.NextDouble()) + 65)));
+				ch = Convert.ToChar(rnd.GetInt(65, 65 + 26));
 				builder.Append(ch);
 			}
 			return builder.ToString();
 		}
 
 		var list = new List<string>();
-		async Task WriteNextLineAsync()
+		async Task WriteNextLineAsync(GingerRandom rnd)
 		{
-			var next = RandomString();
+			var next = RandomString(rnd);
 			lock (list)
 			{
 				list.Add(next);
@@ -171,6 +164,7 @@ public class SafeIoManagerTests
 
 		var t1 = new Thread(() =>
 		{
+			var rnd = TestRandom.Get(1);
 			for (var i = 0; i < Iterations; i++)
 			{
 				/* We have to block the Thread.
@@ -178,21 +172,23 @@ public class SafeIoManagerTests
 				 * which is not true because the WriteNextLineAsync() is not yet finished. The reason is that await will return execution
 				 * the to the calling thread it is detected as the thread is done. t1 and t2 and t3 will still run in parallel!
 				 */
-				WriteNextLineAsync().Wait();
+				WriteNextLineAsync(rnd).Wait();
 			}
 		});
 		var t2 = new Thread(() =>
 		{
+			var rnd = TestRandom.Get(2);
 			for (var i = 0; i < Iterations; i++)
 			{
-				WriteNextLineAsync().Wait();
+				WriteNextLineAsync(rnd).Wait();
 			}
 		});
 		var t3 = new Thread(() =>
 		{
+			var rnd = TestRandom.Get(3);
 			for (var i = 0; i < Iterations; i++)
 			{
-				WriteNextLineAsync().Wait();
+				WriteNextLineAsync(rnd).Wait();
 			}
 		});
 

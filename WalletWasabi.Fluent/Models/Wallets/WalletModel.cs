@@ -8,6 +8,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.HomeScreen.BuySell.Models;
 using WalletWasabi.Fluent.HomeScreen.Labels.Models;
 using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.SecretHunt;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -145,6 +146,8 @@ public partial class WalletModel : ReactiveObject, IDisposable
 	{
 		return new PrivacySuggestionsModel(sendFlow);
 	}
+
+	public List<SecretHuntEventResultModel> GetSecretHuntResults() => Wallet.KeyManager.GetSecretHuntEventResultModelList();
 
 	public string SignMessage(string messageToSign, HdPubKey hdPubKey)
 	{

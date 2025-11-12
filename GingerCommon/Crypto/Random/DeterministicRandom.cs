@@ -42,6 +42,14 @@ public sealed class DeterministicRandom : GingerRandom
 		_s3 = BinaryPrimitives.ReadUInt64LittleEndian(new ReadOnlySpan<byte>(seed, 24, 8));
 	}
 
+	public DeterministicRandom(ReadOnlySpan<byte> seed)
+	{
+		_s0 = BinaryPrimitives.ReadUInt64LittleEndian(seed);
+		_s1 = BinaryPrimitives.ReadUInt64LittleEndian(seed[8..]);
+		_s2 = BinaryPrimitives.ReadUInt64LittleEndian(seed[16..]);
+		_s3 = BinaryPrimitives.ReadUInt64LittleEndian(seed[24..]);
+	}
+
 	public override void GetBytes(Span<byte> buffer)
 	{
 		int idx = 0, sizeFull = buffer.Length, size8 = sizeFull & ~7;

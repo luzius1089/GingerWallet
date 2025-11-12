@@ -1,5 +1,6 @@
 using System.Threading;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tor.Socks5.Pool.Circuits;
 
@@ -16,7 +17,7 @@ public class PersonCircuit : INamedCircuit, IDisposable
 
 	public PersonCircuit(string? purpose = null)
 	{
-		Name = RandomString.CapitalAlphaNumeric(21, secureRandom: true);
+		Name = SecureRandom.Instance.GetString(21, Constants.CapitalAlphaNumericCharacters);
 		_isActive = true;
 		Purpose = purpose;
 	}

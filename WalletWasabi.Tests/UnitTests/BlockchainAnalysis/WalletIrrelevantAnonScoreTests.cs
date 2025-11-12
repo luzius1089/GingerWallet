@@ -1,5 +1,6 @@
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BlockchainAnalysis;
@@ -13,7 +14,7 @@ public class WalletIrrelevantAnonScoreTests
 	public void OneInOneOut()
 	{
 		var analyser = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(1, 1, 0, 0);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 1, 1, 0, 0);
 
 		analyser.Analyze(tx);
 
@@ -25,7 +26,7 @@ public class WalletIrrelevantAnonScoreTests
 	public void ManyInManyOut()
 	{
 		var analyser = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(3, 3, 0, 0);
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 3, 3, 0, 0);
 
 		analyser.Analyze(tx);
 

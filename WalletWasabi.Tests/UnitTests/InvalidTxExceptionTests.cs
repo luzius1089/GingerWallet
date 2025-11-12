@@ -1,9 +1,10 @@
-using System.Linq;
 using NBitcoin;
 using NBitcoin.Policy;
+using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -14,6 +15,7 @@ public class InvalidTxExceptionTests
 	public void ExceptionMessageContainsUsefulInformation()
 	{
 		var crazyInvalidTx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 1) },

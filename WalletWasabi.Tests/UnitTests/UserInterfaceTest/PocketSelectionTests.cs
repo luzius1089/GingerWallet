@@ -1,7 +1,7 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -10,6 +10,7 @@ using WalletWasabi.Fluent.HomeScreen.Send.Models;
 using WalletWasabi.Fluent.HomeScreen.Send.ViewModels;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.UserInterfaceTest;
@@ -38,13 +39,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out _, "Target");
-		pockets.AddPocket(1.0M, out _, "David", "Adam", "Lucas");
-		pockets.AddPocket(1.0M, out _, "Jumar");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target");
+		pockets.AddPocket(rnd, 1.0M, out _, "David", "Adam", "Lucas");
+		pockets.AddPocket(rnd, 1.0M, out _, "Jumar");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -63,13 +65,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AllWhitelistPocketsAreOutputAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "David", "Adam", "Lucas");
-		pockets.AddPocket(1.0M, out var pocket4, "Jumar");
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, "Target", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out var pocket2, "Target");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, "David", "Adam", "Lucas");
+		pockets.AddPocket(rnd, 1.0M, out var pocket4, "Jumar");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -84,11 +87,12 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out _, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out _, "Dan");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -102,11 +106,12 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelAndTheOtherLabelsInThosePocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out _, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out _, "Dan");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -120,11 +125,12 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListSwapsAllLabelsInOtherPocketsThatContainTargetLabelAndTheOtherLabelsInThosePocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out _, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out _, "Dan");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -138,11 +144,12 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task OutPutMatchesWhiteListScenario1Async()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, "Target", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out var pocket2, "Dan");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -157,11 +164,12 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task BlackListHighlightsLabelsExclusivelyThatExistInMultiplePocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, "Target", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out var pocket2, "Dan");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -186,12 +194,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task BlackListHighlightsDealWithMultipleOverlapsCorrectlyAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "Target", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, "Target", "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket2, "Target");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, "Target", "Roland");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -217,12 +226,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListHighlightsDealWithMultipleOverlapsCorrectlyAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Target", "Dan");
-		pockets.AddPocket(1.0M, out _, "Target");
-		pockets.AddPocket(1.0M, out _, "Target", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target", "Dan");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target", "Roland");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -236,12 +246,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task WhiteListSwapsGroupedLabelsInOtherPocketsThatContainTargetLabelExceptThoseAvailableInOtherPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, "Target", "Dan");
-		pockets.AddPocket(1.0M, out var pocket2, "Target");
-		pockets.AddPocket(1.0M, out var pocket3, "Target", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, "Target", "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket2, "Target");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, "Target", "Roland");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -261,13 +272,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task MovesFromWhiteListHighlightsAllLabelsInOtherPocketsThatContainTargetLabelAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Target", "Dan", "Roland");
-		pockets.AddPocket(1.0M, out _, "Target");
-		pockets.AddPocket(1.0M, out _, "David", "Adam", "Lucas");
-		pockets.AddPocket(1.0M, out _, "Jumar");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.0M, out _, "Target");
+		pockets.AddPocket(rnd, 1.0M, out _, "David", "Adam", "Lucas");
+		pockets.AddPocket(rnd, 1.0M, out _, "Jumar");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -295,12 +307,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task PrivateAndSemiPrivatePocketsAreHiddenAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
-		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 2.0M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -314,12 +327,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task UseOnlyPrivateFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.1M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
-		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 2.0M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -337,12 +351,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task UsePrivateAndSemiPrivateFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.5"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.9M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
-		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.9M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 2.0M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -360,12 +375,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task DoNotUsePrivateFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
-		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 2.0M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -381,12 +397,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task IncludePrivateFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(2.0M, out var pocket2, "Dan");
-		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 2.0M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -401,12 +418,13 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task IncludePrivateAndSemiPrivateFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.6M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(1.0M, out var pocket2, "Dan");
-		pockets.AddPocket(1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.6M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 1.0M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket3, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -421,15 +439,16 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task StillIncludePrivateFundsAfterSwapAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 		var pockets = new List<Pocket>();
 
-		var privateCoin = LabelTestExtensions.CreateCoin(0.8m, "", 999);
+		var privateCoin = LabelTestExtensions.CreateCoin(rnd, 0.8m, "", 999);
 		var privatePocket = new Pocket((CoinPocketHelper.PrivateFundsText, new CoinsView(new[] { privateCoin })));
 		pockets.Add(privatePocket);
 
-		pockets.AddPocket(0.3M, out var pocket2, "Dan");
-		pockets.AddPocket(0.1M, out var pocket3, "Lucas");
+		pockets.AddPocket(rnd, 0.3M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.1M, out var pocket3, "Lucas");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -454,11 +473,12 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task NotEnoughSelectedAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "David");
-		pockets.AddPocket(2.0M, out _, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out _, "David");
+		pockets.AddPocket(rnd, 2.0M, out _, "Dan");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -471,13 +491,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectOnlyPrivatePocketAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("0.7"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(0.6M, out var pocket2, "Dan");
-		pockets.AddPocket(0.7M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.7M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 0.6M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.7M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 0.7M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -491,13 +512,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectPrivateAndSemiPrivatePocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("0.7"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.4M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(0.6M, out var pocket2, "Dan");
-		pockets.AddPocket(0.7M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.4M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.4M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 0.6M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.7M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 0.4M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -511,13 +533,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectPrivateAndSemiPrivateAndKnownPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.3M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(0.5M, out var pocket2, "Dan");
-		pockets.AddPocket(0.4M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.3M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.3M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 0.5M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.4M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 0.3M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -531,13 +554,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectPrivateAndSemiPrivateAndUnknownPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.3M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(0.1M, out var pocket2, "Dan");
-		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.4M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.3M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 0.1M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 0.4M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -551,13 +575,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectAllPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("2.0"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(0.3M, out var pocket2, "Dan");
-		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.5M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 0.3M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 0.5M, out var pocket4, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -571,17 +596,18 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectOnlyKnownByRecipientPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), "David, Lucas");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas");
-		pockets.AddPocket(1.1M, out var pocket5, "David");
-		pockets.AddPocket(1.1M, out var pocket6, "Lucas");
-		pockets.AddPocket(1.1M, out var pocket7, "David", "Lucas", "Dan");
-		pockets.AddPocket(1.0M, out var pocket8, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 1.0M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket4, "David", "Lucas");
+		pockets.AddPocket(rnd, 1.1M, out var pocket5, "David");
+		pockets.AddPocket(rnd, 1.1M, out var pocket6, "Lucas");
+		pockets.AddPocket(rnd, 1.1M, out var pocket7, "David", "Lucas", "Dan");
+		pockets.AddPocket(rnd, 1.0M, out var pocket8, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -599,13 +625,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectOnlyKnownByRecipientPocketsCaseInsensitiveAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), "dAN");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(2.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(1.1M, out var pocket3, "Lucas", "Dan");
-		pockets.AddPocket(1.1M, out var pocket4, "dan");
+		pockets.AddPocket(rnd, 2.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.1M, out var pocket3, "Lucas", "Dan");
+		pockets.AddPocket(rnd, 1.1M, out var pocket4, "dan");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -619,14 +646,15 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectKnownByRecipientPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.9"), "David");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(1.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas");
-		pockets.AddPocket(0.1M, out var pocket5, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket4, "David", "Lucas");
+		pockets.AddPocket(rnd, 0.1M, out var pocket5, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -641,18 +669,19 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectKnownByMultipleRecipientPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.9"), "David, Lucas");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(1.1M, out var pocket4, "David", "Lucas", "Dan");
-		pockets.AddPocket(1.1M, out var pocket5, "David");
-		pockets.AddPocket(1.1M, out var pocket6, "Lucas");
-		pockets.AddPocket(1.1M, out var pocket7, "David", "Lucas", "Dan", "Roland");
-		pockets.AddPocket(1.1M, out var pocket8, "David", "Dan");
-		pockets.AddPocket(0.1M, out var pocket9, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.8M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket4, "David", "Lucas", "Dan");
+		pockets.AddPocket(rnd, 1.1M, out var pocket5, "David");
+		pockets.AddPocket(rnd, 1.1M, out var pocket6, "Lucas");
+		pockets.AddPocket(rnd, 1.1M, out var pocket7, "David", "Lucas", "Dan", "Roland");
+		pockets.AddPocket(rnd, 1.1M, out var pocket8, "David", "Dan");
+		pockets.AddPocket(rnd, 0.1M, out var pocket9, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -671,18 +700,19 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectMultipleKnownByMultipleRecipientPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), "David, Lucas");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.2M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.4M, out var pocket4, "David", "Lucas", "Dan");
-		pockets.AddPocket(0.6M, out var pocket5, "David");
-		pockets.AddPocket(0.5M, out var pocket6, "Lucas");
-		pockets.AddPocket(0.5M, out var pocket7, "David", "Lucas", "Dan", "Roland");
-		pockets.AddPocket(0.5M, out var pocket8, "David", "Dan");
-		pockets.AddPocket(0.1M, out var pocket9, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.2M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 0.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 0.4M, out var pocket4, "David", "Lucas", "Dan");
+		pockets.AddPocket(rnd, 0.6M, out var pocket5, "David");
+		pockets.AddPocket(rnd, 0.5M, out var pocket6, "Lucas");
+		pockets.AddPocket(rnd, 0.5M, out var pocket7, "David", "Lucas", "Dan", "Roland");
+		pockets.AddPocket(rnd, 0.5M, out var pocket8, "David", "Dan");
+		pockets.AddPocket(rnd, 0.1M, out var pocket9, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -701,16 +731,17 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task AutoSelectRequiredKnownByRecipientPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.3"), "David");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.2M, out var pocket1, CoinPocketHelper.PrivateFundsText);
-		pockets.AddPocket(1.1M, out var pocket2, "Dan");
-		pockets.AddPocket(1.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
-		pockets.AddPocket(0.5M, out var pocket4, "David");
-		pockets.AddPocket(0.4M, out var pocket5, "David", "Max");
-		pockets.AddPocket(0.6M, out var pocket6, "David", "Lucas", "Dan");
-		pockets.AddPocket(0.1M, out var pocket7, CoinPocketHelper.SemiPrivateFundsText);
+		pockets.AddPocket(rnd, 0.2M, out var pocket1, CoinPocketHelper.PrivateFundsText);
+		pockets.AddPocket(rnd, 1.1M, out var pocket2, "Dan");
+		pockets.AddPocket(rnd, 1.5M, out var pocket3, CoinPocketHelper.UnlabelledFundsText);
+		pockets.AddPocket(rnd, 0.5M, out var pocket4, "David");
+		pockets.AddPocket(rnd, 0.4M, out var pocket5, "David", "Max");
+		pockets.AddPocket(rnd, 0.6M, out var pocket6, "David", "Lucas", "Dan");
+		pockets.AddPocket(rnd, 0.1M, out var pocket7, CoinPocketHelper.SemiPrivateFundsText);
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -727,11 +758,12 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task NotEnoughSelectedWhenSameLabelFoundInSeveralPocketsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), LabelsArray.Empty);
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(0.4M, out _, "Dan");
-		pockets.AddPocket(2.0M, out _, "Dan", "David");
+		pockets.AddPocket(rnd, 0.4M, out _, "Dan");
+		pockets.AddPocket(rnd, 2.0M, out _, "Dan", "David");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -747,11 +779,12 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task SetUsedLabelIgnoreCaseAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.0"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.2M, out var pocket1, "Dan");
-		pockets.AddPocket(1.2M, out var pocket2, "Lucas");
+		pockets.AddPocket(rnd, 1.2M, out var pocket1, "Dan");
+		pockets.AddPocket(rnd, 1.2M, out var pocket2, "Lucas");
 
 		await selection.ResetAsync(pockets.ToArray());
 
@@ -760,7 +793,7 @@ public class PocketSelectionTests
 		Assert.DoesNotContain(pocket2, output);
 
 		var hdpk = LabelTestExtensions.NewKey("dan");
-		var usedCoin = BitcoinFactory.CreateSmartCoin(hdpk, 1.0M);
+		var usedCoin = BitcoinFactory.CreateSmartCoin(TestRandom.Get(), hdpk, 1.0M);
 		await selection.SetUsedLabelAsync(new[] { usedCoin }, privateThreshold: 10);
 
 		Assert.Contains(selection.GetLabel("Lucas"), selection.LabelsBlackList);
@@ -770,15 +803,16 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task SetUsedLabelIncludePrivateFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.5"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out _, "Dan");
 
 		var privateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
 		};
 		var coinsView = new CoinsView(privateCoins.ToArray());
 		var pocket = new Pocket((LabelsArray.Empty, coinsView));
@@ -796,15 +830,16 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task SetUsedLabelIncludeSemiPrivateFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("1.5"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out _, "Dan");
 
 		var semiPrivateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
 		};
 		var coinsView = new CoinsView(semiPrivateCoins.ToArray());
 		var pocket = new Pocket((LabelsArray.Empty, coinsView));
@@ -822,15 +857,16 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task SetUsedLabelIncludePrivateAndSemiPrivateFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("2.5"), "Dan");
 
 		var pockets = new List<Pocket>();
-		pockets.AddPocket(1.0M, out _, "Dan");
+		pockets.AddPocket(rnd, 1.0M, out _, "Dan");
 
 		var privateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
 		};
 		var privateCoinsView = new CoinsView(privateCoins.ToArray());
 		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
@@ -838,8 +874,8 @@ public class PocketSelectionTests
 
 		var semiPrivateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
 		};
 		var semiPrivateCoinsView = new CoinsView(semiPrivateCoins.ToArray());
 		var semiPrivatePocket = new Pocket((LabelsArray.Empty, semiPrivateCoinsView));
@@ -857,14 +893,15 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task IsPocketEnoughWithoutCoinjoiningCoinsAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("0.5"), "Daniel");
 
 		var pockets = new List<Pocket>();
 		var privateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
 		};
 		var privateCoinsView = new CoinsView(privateCoins.ToArray());
 		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
@@ -889,14 +926,15 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task UseCoinjoiningCoinsIfNecessaryAsync()
 	{
+		var rnd = TestRandom.Get();
 		var selection = CreateLabelSelectionViewModel(Money.Parse("2.9"), "Daniel");
 
 		var pockets = new List<Pocket>();
 		var privateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
+			BitcoinFactory.CreateSmartCoin(rnd, LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
 		};
 
 		var privateCoinsView = new CoinsView(privateCoins.ToArray());
@@ -921,13 +959,14 @@ public class PocketSelectionTests
 	[Fact]
 	public async Task IsOtherSelectionPossibleCasesAsync()
 	{
+		var rnd = TestRandom.Get();
 		var pockets = new List<Pocket>();
 
-		var privatePocket = LabelTestExtensions.CreateSingleCoinPocket(1.0m, CoinPocketHelper.PrivateFundsText, anonSet: 999);
-		var semiPrivatePocket = LabelTestExtensions.CreateSingleCoinPocket(1.0m, CoinPocketHelper.SemiPrivateFundsText, anonSet: 2);
+		var privatePocket = LabelTestExtensions.CreateSingleCoinPocket(rnd, 1.0m, CoinPocketHelper.PrivateFundsText, anonSet: 999);
+		var semiPrivatePocket = LabelTestExtensions.CreateSingleCoinPocket(rnd, 1.0m, CoinPocketHelper.SemiPrivateFundsText, anonSet: 2);
 
-		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, "Dan"));
-		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(1.0m, "Dan, Lucas"));
+		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(rnd, 1.0m, "Dan"));
+		pockets.Add(LabelTestExtensions.CreateSingleCoinPocket(rnd, 1.0m, "Dan, Lucas"));
 
 		// Other pocket can be used case.
 		var recipient = "Lucas";

@@ -1,5 +1,6 @@
 using System.Threading;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tor.Socks5.Pool.Circuits;
 
@@ -12,7 +13,7 @@ public class DefaultCircuit : INamedCircuit
 {
 	public static readonly DefaultCircuit Instance = new();
 
-	private static string RandomName = RandomString.CapitalAlphaNumeric(21, secureRandom: true);
+	private static string RandomName = SecureRandom.Instance.GetString(21, Constants.CapitalAlphaNumericCharacters);
 
 	private long _isolationId = 0;
 

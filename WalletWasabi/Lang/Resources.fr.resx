@@ -2191,4 +2191,28 @@
   <data name="CanSelectPrivateCoinsInCoinJoinCoinSelectorToolTip" xml:space="preserve">
     <value>La sélection est autorisée à contenir des pièces déjà privées.</value>
   </data>
+  <data name="SecretHuntViewModelTitle" xml:space="preserve">
+    <value>Chasse aux Secrets</value>
+  </data>
+  <data name="SecretHuntViewModelCaption" xml:space="preserve">
+    <value>L’état actuel des événements de la Chasse aux Secrets.</value>
+  </data>
+  <data name="SecretHuntViewModelKeywords" xml:space="preserve">
+    <value>Secret, Chasse, Coinjoin</value>
+  </data>
+  <data name="SecretHuntSecret" xml:space="preserve">
+    <value>Un Secret : un mot ou une phrase.</value>
+  </data>
+  <data name="SecretHuntExtraSecret" xml:space="preserve">
+    <value>Un Secret Supplémentaire qui est révélé lorsque tous les Secrets normaux sont connus.</value>
+  </data>
+  <data name="SecretHuntEventUnsolved" xml:space="preserve">
+    <value>Cet événement n’a pas encore été résolu.</value>
+  </data>
+  <data name="SecretHuntEventSolved" xml:space="preserve">
+    <value>Pour cet événement, tous les Secrets et le Secret Supplémentaire ont été révélés. À toi de décider ce que tu en fais.</value>
+  </data>
+  <data name="SecretHuntSettingsEnable" xml:space="preserve">
+    <value>Activer ou désactiver l’utilisation de ce portefeuille pour la Chasse aux Secrets.</value>
+  </data>
 </root>

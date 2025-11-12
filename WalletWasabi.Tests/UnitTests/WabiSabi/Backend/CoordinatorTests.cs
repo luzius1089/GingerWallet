@@ -92,7 +92,7 @@ public class CoordinatorTests
 		{
 			var round = WabiSabiTestFactory.CreateRound(cfg);
 			using Key key = new();
-			Alice alice = WabiSabiTestFactory.CreateAlice(key: key, round: round);
+			Alice alice = WabiSabiTestFactory.CreateAlice(TestRandom.Get(), key: key, round: round);
 
 			// Register our coin..
 			round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiTestFactory.CreateCommitmentData(round.Id));
@@ -136,7 +136,7 @@ public class CoordinatorTests
 		var tx = Network.RegTest.CreateTransaction();
 		tx.Version = 1;
 		tx.LockTime = LockTime.Zero;
-		tx.Inputs.Add(outPoint ?? BitcoinFactory.CreateOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+		tx.Inputs.Add(outPoint ?? BitcoinFactory.CreateOutPoint(TestRandom.Get()), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 		using Key key = new();
 		tx.Outputs.Add(amount, key.GetScriptPubKey(ScriptPubKeyType.Segwit));
 		return tx;

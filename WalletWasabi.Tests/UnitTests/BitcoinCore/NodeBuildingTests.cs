@@ -14,7 +14,7 @@ public class NodeBuildingTests
 	public async Task CanBuildCoreNodeAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync();
-		await coreNode.TryStopAsync();
+		await coreNode.TryStopAsync(true, 2);
 	}
 
 	[Fact]
@@ -31,7 +31,7 @@ public class NodeBuildingTests
 		}
 		finally
 		{
-			await Task.WhenAll(node1.TryStopAsync(), node2.TryStopAsync());
+			await Task.WhenAll(node1.TryStopAsync(true, 2), node2.TryStopAsync(true, 2));
 		}
 	}
 
@@ -46,7 +46,7 @@ public class NodeBuildingTests
 		}
 		finally
 		{
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -64,7 +64,7 @@ public class NodeBuildingTests
 		finally
 		{
 			node.Disconnect();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 }

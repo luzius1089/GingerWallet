@@ -57,15 +57,27 @@ public class IndexBuilderService
 			}
 			else
 			{
-				ImmutableList<FilterModel>.Builder builder = ImmutableList.CreateBuilder<FilterModel>();
-
+				List<FilterModel> newList = new(1000_000);
 				foreach (var line in File.ReadAllLines(IndexFilePath))
 				{
 					var filter = FilterModel.FromLine(line);
-					builder.Add(filter);
+					newList.Add(filter);
 				}
 
-				Index = builder.ToImmutableList();
+				_indexListLock.EnterWriteLock();
+				try
+				{
+					_blockIndex.Clear();
+					for (int idx = 0, len = newList.Count; idx < len; idx++)
+					{
+						_blockIndex.Add(newList[idx].Header.BlockHash, idx);
+					}
+					_indexList = newList;
+				}
+				finally
+				{
+					_indexListLock.ExitWriteLock();
+				}
 			}
 		}
 
@@ -77,10 +89,10 @@ public class IndexBuilderService
 	private IRPCClient RpcClient { get; }
 	private BlockNotifier BlockNotifier { get; }
 	private string IndexFilePath { get; }
-	private ImmutableList<FilterModel> Index { get; set; } = ImmutableList<FilterModel>.Empty;
 
-	/// <remarks>Guards <see cref="Index"/>.</remarks>
-	private object IndexLock { get; } = new();
+	private ReaderWriterLockSlim _indexListLock = new();
+	private List<FilterModel> _indexList = [];
+	private Dictionary<uint256, int> _blockIndex = [];
 
 	private uint StartingHeight { get; }
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
@@ -111,10 +123,12 @@ public class IndexBuilderService
 					return;
 				}
 
-				Interlocked.Increment(ref _workerCount);
-				while (Interlocked.Read(ref _workerCount) != 1)
+				if (Interlocked.Increment(ref _workerCount) != 1)
 				{
-					await Task.Delay(100).ConfigureAwait(false);
+					while (Interlocked.Read(ref _workerCount) != 1)
+					{
+						await Task.Delay(100).ConfigureAwait(false);
+					}
 				}
 
 				if (IsStopping)
@@ -132,14 +146,16 @@ public class IndexBuilderService
 						{
 							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 
-							FilterModel? lastIndexFilter = null;
+							FilterModel? lastIndexFilter;
 
-							lock (IndexLock)
+							_indexListLock.EnterReadLock();
+							try
 							{
-								if (Index.Count != 0)
-								{
-									lastIndexFilter = Index[^1];
-								}
+								lastIndexFilter = _indexList.Count > 0 ? _indexList[^1] : null;
+							}
+							finally
+							{
+								_indexListLock.ExitReadLock();
 							}
 
 							uint currentHeight;
@@ -208,9 +224,15 @@ public class IndexBuilderService
 
 							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() }).ConfigureAwait(false);
 
-							lock (IndexLock)
+							_indexListLock.EnterWriteLock();
+							try
 							{
-								Index = Index.Add(filterModel);
+								_blockIndex.Add(filterModel.Header.BlockHash, _indexList.Count);
+								_indexList.Add(filterModel);
+							}
+							finally
+							{
+								_indexListLock.ExitWriteLock();
 							}
 
 							// If not close to the tip, just log debug.
@@ -299,10 +321,16 @@ public class IndexBuilderService
 		// 1. Rollback index.
 		uint256 blockHash;
 
-		lock (IndexLock)
+		_indexListLock.EnterWriteLock();
+		try
 		{
-			blockHash = Index[^1].Header.BlockHash;
-			Index = Index.RemoveAt(Index.Count - 1);
+			blockHash = _indexList[^1].Header.BlockHash;
+			_blockIndex.Remove(blockHash);
+			_indexList.RemoveAt(_indexList.Count - 1);
+		}
+		finally
+		{
+			_indexListLock.ExitWriteLock();
 		}
 
 		Logger.LogInfo($"REORG invalid block: {blockHash}");
@@ -334,50 +362,41 @@ public class IndexBuilderService
 
 	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 	{
-		found = false; // Only build the filter list from when the known hash is found.
-		var filters = new List<FilterModel>();
-
-		ImmutableList<FilterModel> currentIndex;
-
-		lock (IndexLock)
+		Height bestHeight;
+		List<FilterModel>? filters = null;
 		{
-			currentIndex = Index;
-		}
-
-		foreach (var filter in currentIndex)
-		{
-			if (found)
+			_indexListLock.EnterReadLock();
+			try
 			{
-				filters.Add(filter);
-				if (filters.Count >= count)
+				bestHeight = _indexList.Count > 0 ? (int)_indexList[^1].Header.Height : Height.Unknown;
+				if (found = _blockIndex.TryGetValue(bestKnownBlockHash, out int idx))
 				{
-					break;
+					int bgn = Math.Min(idx + 1, _indexList.Count);
+					int len = Math.Min(count, _indexList.Count - bgn);
+					if (len > 0)
+					{
+						filters = _indexList.GetRange(bgn, len);
+					}
 				}
 			}
-			else
+			finally
 			{
-				if (filter.Header.BlockHash == bestKnownBlockHash)
-				{
-					found = true;
-				}
+				_indexListLock.ExitReadLock();
 			}
 		}
-
-		if (currentIndex.Count == 0)
-		{
-			return (Height.Unknown, Enumerable.Empty<FilterModel>());
-		}
-		else
-		{
-			return ((int)currentIndex[^1].Header.Height, filters);
-		}
+		return (bestHeight, filters is not null ? filters : Enumerable.Empty<FilterModel>());
 	}
 
 	public FilterModel GetLastFilter()
 	{
-		lock (IndexLock)
+		_indexListLock.EnterReadLock();
+		try
 		{
-			return Index[^1];
+			return _indexList[^1];
+		}
+		finally
+		{
+			_indexListLock.ExitReadLock();
 		}
 	}
 

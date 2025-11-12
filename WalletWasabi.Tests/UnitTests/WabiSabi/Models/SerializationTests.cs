@@ -28,9 +28,10 @@ public class SerializationTests
 	[Fact]
 	public void InputRegistrationRequestMessageSerialization()
 	{
+		var rnd = TestRandom.Get();
 		var message = new InputRegistrationRequest(
-			BitcoinFactory.CreateUint256(),
-			BitcoinFactory.CreateOutPoint(),
+			BitcoinFactory.CreateUint256(rnd),
+			BitcoinFactory.CreateOutPoint(rnd),
 			new OwnershipProof(),
 			CreateZeroCredentialsRequest(),
 			CreateZeroCredentialsRequest());
@@ -54,7 +55,7 @@ public class SerializationTests
 	public void ConnectionConfirmationRequestMessageSerialization()
 	{
 		var message = new ConnectionConfirmationRequest(
-			BitcoinFactory.CreateUint256(),
+			BitcoinFactory.CreateUint256(TestRandom.Get()),
 			Guid.NewGuid(),
 			CreateZeroCredentialsRequest(),
 			CreateRealCredentialsRequest(),
@@ -80,7 +81,7 @@ public class SerializationTests
 	public void OutputRegistrationRequestMessageSerialization()
 	{
 		var message = new OutputRegistrationRequest(
-			BitcoinFactory.CreateUint256(),
+			BitcoinFactory.CreateUint256(TestRandom.Get()),
 			BitcoinFactory.CreateScript(),
 			CreateRealCredentialsRequest(),
 			CreateRealCredentialsRequest());
@@ -92,7 +93,7 @@ public class SerializationTests
 	public void ReissueCredentialRequestMessageSerialization()
 	{
 		var message = new ReissueCredentialRequest(
-			BitcoinFactory.CreateUint256(),
+			BitcoinFactory.CreateUint256(TestRandom.Get()),
 			CreateRealCredentialsRequest(),
 			CreateRealCredentialsRequest(),
 			CreateZeroCredentialsRequest(),
@@ -117,7 +118,7 @@ public class SerializationTests
 	public void InpuRemovalRequestMessageSerialization()
 	{
 		var message = new InputsRemovalRequest(
-			BitcoinFactory.CreateUint256(),
+			BitcoinFactory.CreateUint256(TestRandom.Get()),
 			Guid.NewGuid());
 
 		AssertSerialization(message);
@@ -128,7 +129,7 @@ public class SerializationTests
 	{
 		using var key1 = new Key();
 		using var key2 = new Key();
-		var message = new TransactionSignaturesRequest(BitcoinFactory.CreateUint256(), 1, new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())));
+		var message = new TransactionSignaturesRequest(BitcoinFactory.CreateUint256(TestRandom.Get()), 1, new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())));
 
 		AssertSerialization(message);
 	}
@@ -140,7 +141,7 @@ public class SerializationTests
 		AssertSerialization(RoundState.FromRound(round));
 
 		var state = round.Assert<ConstructionState>();
-		(var coin, var ownershipProof) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
+		(var coin, var ownershipProof) = WabiSabiTestFactory.CreateCoinWithOwnershipProof(TestRandom.Get(), roundId: round.Id);
 		state = state.AddInput(coin, ownershipProof, WabiSabiTestFactory.CreateCommitmentData(round.Id));
 		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
 		AssertSerialization(RoundState.FromRound(round));

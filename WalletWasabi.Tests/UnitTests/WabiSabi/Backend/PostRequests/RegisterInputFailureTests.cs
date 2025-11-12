@@ -1,9 +1,11 @@
+using GingerCommon.Crypto.Random;
 using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -24,14 +26,15 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task RoundNotFoundAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
-		using Arena arena = await ArenaTestFactory.Default.CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.Default.CreateAndStartAsync(rnd);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(uint256.Zero, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(uint256.Zero, BitcoinFactory.CreateOutPoint(rnd), ownershipProof, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 
 		await arena.StopAsync(CancellationToken.None);
@@ -40,14 +43,15 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task WrongPhaseAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync();
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = arena.Rounds.First();
-		var req = WabiSabiTestFactory.CreateInputRegistrationRequest(round, key: key, coin.Outpoint);
+		var req = WabiSabiTestFactory.CreateInputRegistrationRequest(rnd, round, key: key, coin.Outpoint);
 
 		foreach (Phase phase in Enum.GetValues(typeof(Phase)))
 		{
@@ -64,21 +68,22 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputRegistrationFullAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.MaxInputCountByRound = 3;
 
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
 
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-		round.Alices.Add(WabiSabiTestFactory.CreateAlice(round));
-		round.Alices.Add(WabiSabiTestFactory.CreateAlice(round));
-		round.Alices.Add(WabiSabiTestFactory.CreateAlice(round));
+		round.Alices.Add(WabiSabiTestFactory.CreateAlice(rnd, round));
+		round.Alices.Add(WabiSabiTestFactory.CreateAlice(rnd, round));
+		round.Alices.Add(WabiSabiTestFactory.CreateAlice(rnd, round));
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WrongPhaseException>(
@@ -92,16 +97,17 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputRegistrationTimedOutAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.StandardInputRegistrationTimeout = TimeSpan.Zero;
 
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 
@@ -122,15 +128,16 @@ public class RegisterInputFailureTests
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
 
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 
 		Prison prison = WabiSabiTestFactory.CreatePrison();
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg, rpc, prison).CreateAndStartAsync(round);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg, rpc, prison).CreateAndStartAsync(rnd, round);
 		prison.FailedToSign(coin.Outpoint, Money.Coins(1m), round.Id);
 
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 
@@ -146,18 +153,19 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputLongBannedAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
 
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 
 		Prison prison = WabiSabiTestFactory.CreatePrison();
 		prison.FailedVerification(coin.Outpoint, round.Id, TimeSpan.Zero, "");
-		using Arena arena = await ArenaTestFactory.From(cfg, rpc, prison).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg, rpc, prison).CreateAndStartAsync(rnd, round);
 
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 
@@ -173,20 +181,21 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputCantBeNotedAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
 
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateWabiSabiConfig();
 		cfg.AllowNotedInputRegistration = false;
 
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		Prison prison = WabiSabiTestFactory.CreatePrison();
 		prison.FailedToConfirm(coin.Outpoint, Money.Coins(1m), round.Id);
 
-		using Arena arena = await ArenaTestFactory.From(cfg, rpc, prison).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg, rpc, prison).CreateAndStartAsync(rnd, round);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 
@@ -200,19 +209,20 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputSpentAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		var mockRpc = new MockRpcClient();
 		mockRpc.OnGetTxOutAsync = (_, _, _) => null;
 
-		using Arena arena = await ArenaTestFactory.From(cfg).With(mockRpc).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(mockRpc).CreateAndStartAsync(rnd, round);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(rnd), ownershipProof, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.InputSpent, ex.ErrorCode);
 
 		await arena.StopAsync(CancellationToken.None);
@@ -221,20 +231,21 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputUnconfirmedAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		var mockRpc = new MockRpcClient();
 		mockRpc.OnGetTxOutAsync = (_, _, _) =>
 			new NBitcoin.RPC.GetTxOutResponse { Confirmations = 0 };
 
-		using Arena arena = await ArenaTestFactory.From(cfg).With(mockRpc).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(mockRpc).CreateAndStartAsync(rnd, round);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
+			async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(rnd), ownershipProof, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.InputUnconfirmed, ex.ErrorCode);
 
 		await arena.StopAsync(CancellationToken.None);
@@ -243,12 +254,13 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputImmatureAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient();
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd);
 		var callCounter = 1;
 		rpc.OnGetTxOutAsync = (_, _, _) =>
 		{
@@ -256,14 +268,14 @@ public class RegisterInputFailureTests
 			callCounter++;
 			return ret;
 		};
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 
-		var req = WabiSabiTestFactory.CreateInputRegistrationRequest(round: round);
+		var req = WabiSabiTestFactory.CreateInputRegistrationRequest(rnd, round: round);
 		foreach (var i in Enumerable.Range(1, 100))
 		{
 			var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
-				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(), ownershipProof, CancellationToken.None));
+				async () => await arenaClient.RegisterInputAsync(round.Id, BitcoinFactory.CreateOutPoint(rnd), ownershipProof, CancellationToken.None));
 
 			Assert.Equal(WabiSabiProtocolErrorCode.InputImmature, ex.ErrorCode);
 		}
@@ -274,6 +286,7 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task TaprootNotAllowedAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.AllowP2trInputs = false;
 
@@ -281,12 +294,12 @@ public class RegisterInputFailureTests
 
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var minAliceDeadline = DateTimeOffset.UtcNow + (cfg.ConnectionConfirmationTimeout * 0.9);
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
 
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
 			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
@@ -298,36 +311,40 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task WrongScriptPubKeyInOwnershipProofAsync()
 	{
-		await TestOwnershipProofAsync((key, roundId) => WabiSabiTestFactory.CreateOwnershipProof(new Key(), roundId));
+		var rnd = TestRandom.Get();
+		await TestOwnershipProofAsync(rnd, (key, roundId) => WabiSabiTestFactory.CreateOwnershipProof(rnd, new Key(), roundId));
 	}
 
 	[Fact]
 	public async Task WrongRoundIdInOwnershipProofAsync()
 	{
-		await TestOwnershipProofAsync((key, roundId) => WabiSabiTestFactory.CreateOwnershipProof(key, uint256.One));
+		var rnd = TestRandom.Get();
+		await TestOwnershipProofAsync(rnd, (key, roundId) => WabiSabiTestFactory.CreateOwnershipProof(rnd, key, uint256.One));
 	}
 
 	[Fact]
 	public async Task WrongCoordinatorIdentifierInOwnershipProofAsync()
 	{
-		await TestOwnershipProofAsync((key, roundId) => OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", roundId), ScriptPubKeyType.Segwit));
+		var rnd = TestRandom.Get();
+		await TestOwnershipProofAsync(rnd, (key, roundId) => OwnershipProof.GenerateCoinJoinInputProof(key, new OwnershipIdentifier(key, key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)), new CoinJoinInputCommitmentData("test", roundId), ScriptPubKeyType.Segwit));
 	}
 
 	[Fact]
 	public async Task NotEnoughFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		var txOut = new TxOut(Money.Coins(1.0m), key.GetScriptPubKey(ScriptPubKeyType.Segwit));
-		var outpoint = BitcoinFactory.CreateOutPoint();
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(new Coin(outpoint, txOut));
+		var outpoint = BitcoinFactory.CreateOutPoint(rnd);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, new Coin(outpoint, txOut));
 
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.MinRegistrableAmount = Money.Coins(2);
 
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -340,16 +357,17 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task TooMuchFundsAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.MaxRegistrableAmount = Money.Coins(0.9m);
 
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -365,17 +383,18 @@ public class RegisterInputFailureTests
 		// Configures a round that allows so many inputs (Alices) that
 		// the virtual size each of they have available is not enough
 		// to register anything.
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		cfg.MaxInputCountByRound = 100_000;
 
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
 
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
 		RoundParameterFactory roundParameterFactory = WabiSabiTestFactory.CreateRoundParametersFactory(cfg, rpc.Network, maxVsizeAllocationPerAlice: 0);
 		Round round = WabiSabiTestFactory.CreateRound(roundParameterFactory.CreateRoundParameter(new FeeRate(10m), Money.Zero));
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).With(roundParameterFactory).CreateAndStartAsync(round);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).With(roundParameterFactory).CreateAndStartAsync(rnd, round);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -388,18 +407,19 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task AliceAlreadyRegisteredIntraRoundAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		// Make sure an Alice have already been registered with the same input.
-		var anotherAlice = WabiSabiTestFactory.CreateAlice(coin, WabiSabiTestFactory.CreateOwnershipProof(key), round);
+		var anotherAlice = WabiSabiTestFactory.CreateAlice(coin, WabiSabiTestFactory.CreateOwnershipProof(rnd, key), round);
 		round.Alices.Add(anotherAlice);
 		round.SetPhase(Phase.ConnectionConfirmation);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -412,20 +432,21 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task AliceAlreadyRegisteredCrossRoundAsync()
 	{
+		var rnd = TestRandom.Get();
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 		var anotherRound = WabiSabiTestFactory.CreateRound(cfg);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id);
 
 		// Make sure an Alice have already been registered with the same input.
-		var preAlice = WabiSabiTestFactory.CreateAlice(coin, WabiSabiTestFactory.CreateOwnershipProof(key), round);
+		var preAlice = WabiSabiTestFactory.CreateAlice(coin, WabiSabiTestFactory.CreateOwnershipProof(rnd, key), round);
 		anotherRound.Alices.Add(preAlice);
 		anotherRound.SetPhase(Phase.ConnectionConfirmation);
 
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round, anotherRound);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round, anotherRound);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(
@@ -435,14 +456,14 @@ public class RegisterInputFailureTests
 		await arena.StopAsync(CancellationToken.None);
 	}
 
-	private async Task TestOwnershipProofAsync(Func<Key, uint256, OwnershipProof> ownershipProofFunc)
+	private async Task TestOwnershipProofAsync(GingerRandom rnd, Func<Key, uint256, OwnershipProof> ownershipProofFunc)
 	{
 		using Key key = new();
 		var coin = WabiSabiTestFactory.CreateCoin(key);
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
-		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(coin);
-		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(round);
+		var rpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd, coin);
+		using Arena arena = await ArenaTestFactory.From(cfg).With(rpc).CreateAndStartAsync(rnd, round);
 
 		var arenaClient = WabiSabiTestFactory.CreateArenaClient(arena);
 		OwnershipProof ownershipProof = ownershipProofFunc(key, round.Id);

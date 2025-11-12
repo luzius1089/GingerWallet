@@ -2191,4 +2191,28 @@
   <data name="CanSelectPrivateCoinsInCoinJoinCoinSelectorToolTip" xml:space="preserve">
     <value>A kiválasztott érmék tartalmazhatnak már anonim érméket is.</value>
   </data>
+  <data name="SecretHuntViewModelTitle" xml:space="preserve">
+    <value>Titokvadászat</value>
+  </data>
+  <data name="SecretHuntViewModelCaption" xml:space="preserve">
+    <value>A Titokvadászat események aktuális állapota.</value>
+  </data>
+  <data name="SecretHuntViewModelKeywords" xml:space="preserve">
+    <value>Titok, Vadászat, Coinjoin</value>
+  </data>
+  <data name="SecretHuntSecret" xml:space="preserve">
+    <value>Egy Titok – egy szó vagy mondat.</value>
+  </data>
+  <data name="SecretHuntExtraSecret" xml:space="preserve">
+    <value>Extra Titok, amely akkor tárul fel, ha az összes normál Titok ismert.</value>
+  </data>
+  <data name="SecretHuntEventUnsolved" xml:space="preserve">
+    <value>Ez az esemény még nincs megoldva.</value>
+  </data>
+  <data name="SecretHuntEventSolved" xml:space="preserve">
+    <value>Ehhez az eseményhez minden Titok és az Extra Titok is fel van fedve. Rajtad múlik, mit kezdesz velük.</value>
+  </data>
+  <data name="SecretHuntSettingsEnable" xml:space="preserve">
+    <value>A Titokvadászat használatának engedélyezése vagy letiltása ehhez a pénztárcához.</value>
+  </data>
 </root>

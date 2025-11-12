@@ -15,7 +15,7 @@ public class CoinJoinAnonScoreTests
 	public void BasicCalculation()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
 		analyzer.Analyze(tx);
 
@@ -29,7 +29,7 @@ public class CoinJoinAnonScoreTests
 	public void DoubleProcessing()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 		analyzer.Analyze(tx);
 		analyzer.Analyze(tx);
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
@@ -42,7 +42,7 @@ public class CoinJoinAnonScoreTests
 	public void OtherWalletChangesThings()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 8), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 9, Enumerable.Repeat(Money.Coins(1m), 8), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 		var sc = tx.WalletOutputs.First();
 		Assert.True(tx.TryRemoveWalletOutput(sc));
 		analyzer.Analyze(tx);
@@ -59,7 +59,7 @@ public class CoinJoinAnonScoreTests
 	public void Inheritance()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
 		analyzer.Analyze(tx);
 
@@ -74,7 +74,7 @@ public class CoinJoinAnonScoreTests
 	public void ChangeOutput()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
 
 		analyzer.Analyze(tx);
 
@@ -90,7 +90,7 @@ public class CoinJoinAnonScoreTests
 	public void ChangeOutputConservativeConsolidation()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(3.1m), 1), (Money.Coins(3.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(3.1m), 1), (Money.Coins(3.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
 
 		analyzer.Analyze(tx);
 
@@ -106,7 +106,7 @@ public class CoinJoinAnonScoreTests
 	public void ChangeOutputInheritance()
 	{
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
 
 		analyzer.Analyze(tx);
 
@@ -125,6 +125,7 @@ public class CoinJoinAnonScoreTests
 		var analyzer = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1, 2, 2 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			9,
 			othersOutputs.Select(x => Money.Coins(x)),
 			new[] { (Money.Coins(3.2m), 1) },
@@ -147,6 +148,7 @@ public class CoinJoinAnonScoreTests
 		var analyzer = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1, 2, 2 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			9,
 			othersOutputs.Select(x => Money.Coins(x)),
 			new[] { (Money.Coins(3.2m), 100) },
@@ -170,6 +172,7 @@ public class CoinJoinAnonScoreTests
 		var othersOutputs = new[] { 1, 1, 1 };
 		var ownOutputs = new[] { 1, 1 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			9,
 			othersOutputs.Select(x => Money.Coins(x)),
 			new[] { (Money.Coins(3.2m), 1) },
@@ -188,6 +191,7 @@ public class CoinJoinAnonScoreTests
 		var othersOutputs = new[] { 1 };
 		var ownOutputs = new[] { 1, 1, 1, 1 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
+				TestRandom.Get(),
 				1,
 				othersOutputs.Select(x => Money.Coins(x)),
 				new[] { (Money.Coins(4.2m), 4) },
@@ -208,7 +212,7 @@ public class CoinJoinAnonScoreTests
 	{
 		// Anonset can never be larger than the number of inputs.
 		var analyzer = new BlockchainAnalyzer();
-		var tx = BitcoinFactory.CreateSmartTransaction(2, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+		var tx = BitcoinFactory.CreateSmartTransaction(TestRandom.Get(), 2, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
 		analyzer.Analyze(tx);
 
@@ -224,6 +228,7 @@ public class CoinJoinAnonScoreTests
 		var othersOutputs = new[] { 1, 1, 1 };
 		var ownOutputs = new[] { 1, 1 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			1,
 			othersOutputs.Select(x => Money.Coins(x)),
 			new[] { (Money.Coins(3.2m), 1) },
@@ -245,6 +250,7 @@ public class CoinJoinAnonScoreTests
 		// Input merging results in worse inherited anonset, but does not punish gains from output indistinguishability.
 		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 1), (Money.Coins(1.2m), 1), (Money.Coins(1.3m), 1), (Money.Coins(1.4m), 1) },
@@ -268,6 +274,7 @@ public class CoinJoinAnonScoreTests
 		var othersOutputCount = 9;
 
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			50,
 			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
 			ownInputs,
@@ -295,6 +302,7 @@ public class CoinJoinAnonScoreTests
 		var othersOutputCount = 9;
 
 		var tx = BitcoinFactory.CreateSmartTransaction(
+			TestRandom.Get(),
 			50,
 			Enumerable.Repeat(Money.Coins(1m), othersOutputCount),
 			ownInputs,

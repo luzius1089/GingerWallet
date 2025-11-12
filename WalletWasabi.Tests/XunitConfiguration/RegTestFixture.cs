@@ -61,7 +61,6 @@ public class RegTestFixture : IDisposable
 				.ConfigureWebHostDefaults(webBuilder => webBuilder
 						.UseStartup<Startup>()
 						.UseConfiguration(conf)
-						.UseWebRoot("../../../../WalletWasabi.Backend/wwwroot")
 						.UseUrls(BackendEndPoint))
 				.Build();
 
@@ -109,7 +108,7 @@ public class RegTestFixture : IDisposable
 			{
 				BackendHost.StopAsync().GetAwaiter().GetResult();
 				BackendHost.Dispose();
-				BackendRegTestNode.TryStopAsync().GetAwaiter().GetResult();
+				BackendRegTestNode.TryStopAsync(true, 2).GetAwaiter().GetResult();
 				HttpClient.Dispose();
 			}
 

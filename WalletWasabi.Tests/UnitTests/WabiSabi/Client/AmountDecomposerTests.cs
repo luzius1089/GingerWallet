@@ -48,8 +48,8 @@ public class AmountDecomposerTests
 		var availableVsize = maxAvailableOutputs * outputVirtualSize;
 		var feeRate = new FeeRate(feeRateDecimal);
 		var feePerOutput = feeRate.GetFee(outputVirtualSize);
-		var registeredCoinEffectiveValues = GenerateRandomCoins(random).Take(3).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
-		var theirCoinEffectiveValues = GenerateRandomCoins(random).Take(30).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
+		var registeredCoinEffectiveValues = GenerateRandomCoins(random, 3).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
+		var theirCoinEffectiveValues = GenerateRandomCoins(random, 30).Select(c => c.EffectiveValue(feeRate, CoordinationFeeRate.Zero)).ToList();
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountCredentialValue));
 		var allowedOutputTypes = isTaprootEnabled ? new List<ScriptType>() { ScriptType.Taproot, ScriptType.P2WPKH } : new List<ScriptType>() { ScriptType.P2WPKH };
 
@@ -84,20 +84,22 @@ public class AmountDecomposerTests
 		}
 	}
 
-	private static IEnumerable<Coin> GenerateRandomCoins(GingerRandom random)
+	private static List<Coin> GenerateRandomCoins(GingerRandom random, int num)
 	{
 		using var key = new Key();
 		var script = key.GetScriptPubKey(ScriptPubKeyType.Segwit);
-		while (true)
+		List<Coin> result = [];
+		for (; num > 0; --num)
 		{
 			var amount = random.GetInt64(100_000, ProtocolConstants.MaxAmountCredentialValue);
-			yield return CreateCoin(script, amount);
+			result.Add(CreateCoin(random, script, amount));
 		}
+		return result;
 	}
 
-	private static Coin CreateCoin(Script scriptPubKey, long amount)
+	private static Coin CreateCoin(GingerRandom rnd, Script scriptPubKey, long amount)
 	{
-		var prevOut = BitcoinFactory.CreateOutPoint();
+		var prevOut = BitcoinFactory.CreateOutPoint(rnd);
 		var txOut = new TxOut(Money.Satoshis(amount), scriptPubKey);
 		return new Coin(prevOut, txOut);
 	}

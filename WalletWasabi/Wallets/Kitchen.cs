@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Wallets;
 
@@ -45,7 +46,7 @@ public class Kitchen
 		{
 			ingredients ??= "";
 
-			Salt = RandomString.AlphaNumeric(21, secureRandom: true);
+			Salt = SecureRandom.Instance.GetString(21, Constants.AlphaNumericCharacters);
 			Soup = StringCipher.Encrypt(ingredients, Salt);
 		}
 	}

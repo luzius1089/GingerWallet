@@ -86,7 +86,7 @@ public class P2pBasedTests
 		finally
 		{
 			node.Disconnect();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -133,7 +133,7 @@ public class P2pBasedTests
 		}
 		finally
 		{
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 
@@ -209,7 +209,7 @@ public class P2pBasedTests
 		finally
 		{
 			await services.StopAllAsync();
-			await coreNode.TryStopAsync();
+			await coreNode.TryStopAsync(true, 2);
 		}
 	}
 }

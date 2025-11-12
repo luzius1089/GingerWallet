@@ -31,51 +31,57 @@ public class UtxoPrisonWardenTests
 	[Fact]
 	public async Task PrisonSerializationAsync()
 	{
+		var rnd = TestRandom.Get();
 		var workDir = TestDirectory.Get();
 
-		// Create prison.
-		CoordinatorParameters coordinatorParameters = new(workDir);
-		using var w = new Warden(
-			coordinatorParameters.PrisonFilePath,
-			WabiSabiTestFactory.CreateCoinJoinIdStore(),
-			coordinatorParameters.RuntimeCoordinatorConfig);
-		await w.StartAsync(CancellationToken.None);
-		var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-		var i1 = BitcoinFactory.CreateOutPoint();
-		var i2 = BitcoinFactory.CreateOutPoint();
-		var i3 = BitcoinFactory.CreateOutPoint();
-		var i4 = BitcoinFactory.CreateOutPoint();
-		var i5 = BitcoinFactory.CreateOutPoint();
-		var i6 = BitcoinFactory.CreateOutPoint();
-		w.Prison.FailedVerification(i1, uint256.One, TimeSpan.Zero, "local"); // For local we will add a special reason.
-		w.Prison.FailedToConfirm(i2, Money.Coins(0.01m), uint256.One);
-		w.Prison.FailedToSign(i3, Money.Coins(0.1m), uint256.One);
-		w.Prison.DoubleSpent(i4, Money.Coins(0.1m), uint256.One);
-		w.Prison.CheatingDetected(i5, uint256.One);
-		w.Prison.InheritPunishment(i6, [i3], [InputBannedReasonEnum.RoundDisruptionMethodDidNotSignalReadyToSign]);
+		var i1 = BitcoinFactory.CreateOutPoint(rnd);
+		var i2 = BitcoinFactory.CreateOutPoint(rnd);
+		var i3 = BitcoinFactory.CreateOutPoint(rnd);
+		var i4 = BitcoinFactory.CreateOutPoint(rnd);
+		var i5 = BitcoinFactory.CreateOutPoint(rnd);
+		var i6 = BitcoinFactory.CreateOutPoint(rnd);
 
-		// Wait until serializes.
-		await w.StopAsync(CancellationToken.None);
+		// Create prison.
+		{
+			CoordinatorParameters coordinatorParameters = new(workDir);
+			using var w = new Warden(
+				coordinatorParameters.PrisonFilePath,
+				WabiSabiTestFactory.CreateCoinJoinIdStore(),
+				coordinatorParameters.RuntimeCoordinatorConfig);
+			await w.StartAsync(CancellationToken.None);
+			var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+			w.Prison.FailedVerification(i1, uint256.One, TimeSpan.Zero, "local"); // For local we will add a special reason.
+			w.Prison.FailedToConfirm(i2, Money.Coins(0.01m), uint256.One);
+			w.Prison.FailedToSign(i3, Money.Coins(0.1m), uint256.One);
+			w.Prison.DoubleSpent(i4, Money.Coins(0.1m), uint256.One);
+			w.Prison.CheatingDetected(i5, uint256.One);
+			w.Prison.InheritPunishment(i6, [i3], [InputBannedReasonEnum.RoundDisruptionMethodDidNotSignalReadyToSign]);
+
+			// Wait until serializes.
+			await w.StopAsync(CancellationToken.None);
+		}
 
 		// See if prev UTXOs are loaded.
-		CoordinatorParameters coordinatorParameters2 = new(workDir);
-		var coinjoinIdStoreMock = new Mock<ICoinJoinIdStore>();
-		coinjoinIdStoreMock.Setup(x => x.Contains(It.IsAny<uint256>())).Returns(true);
-		using var w2 = new Warden(coordinatorParameters2.PrisonFilePath, coinjoinIdStoreMock.Object, coordinatorParameters2.RuntimeCoordinatorConfig);
-		await w2.StartAsync(CancellationToken.None);
+		{
+			CoordinatorParameters coordinatorParameters2 = new(workDir);
+			var coinjoinIdStoreMock = new Mock<ICoinJoinIdStore>();
+			coinjoinIdStoreMock.Setup(x => x.Contains(It.IsAny<uint256>())).Returns(true);
+			using var w2 = new Warden(coordinatorParameters2.PrisonFilePath, coinjoinIdStoreMock.Object, coordinatorParameters2.RuntimeCoordinatorConfig);
+			await w2.StartAsync(CancellationToken.None);
 
-		var dosConfig = coordinatorParameters2.RuntimeCoordinatorConfig.GetDoSConfiguration();
-		Assert.True(w2.Prison.IsBanned(i1, dosConfig, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i2, dosConfig, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i3, dosConfig, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i4, dosConfig, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i5, dosConfig, DateTimeOffset.UtcNow));
-		Assert.True(w2.Prison.IsBanned(i6, dosConfig, DateTimeOffset.UtcNow));
+			var dosConfig = coordinatorParameters2.RuntimeCoordinatorConfig.GetDoSConfiguration();
+			Assert.True(w2.Prison.IsBanned(i1, dosConfig, DateTimeOffset.UtcNow));
+			Assert.True(w2.Prison.IsBanned(i2, dosConfig, DateTimeOffset.UtcNow));
+			Assert.True(w2.Prison.IsBanned(i3, dosConfig, DateTimeOffset.UtcNow));
+			Assert.True(w2.Prison.IsBanned(i4, dosConfig, DateTimeOffset.UtcNow));
+			Assert.True(w2.Prison.IsBanned(i5, dosConfig, DateTimeOffset.UtcNow));
+			Assert.True(w2.Prison.IsBanned(i6, dosConfig, DateTimeOffset.UtcNow));
 
-		Assert.Equal(InputBannedReasonEnum.LocalCoinVerifier, w2.Prison.GetBan(i1, dosConfig).Reasons.First());
+			Assert.Equal(InputBannedReasonEnum.LocalCoinVerifier, w2.Prison.GetBan(i1, dosConfig).Reasons.First());
 
-		Assert.Equal([InputBannedReasonEnum.Inherited, InputBannedReasonEnum.RoundDisruptionMethodDidNotSignalReadyToSign], w2.Prison.GetBan(i6, dosConfig).Reasons.OrderBy(x => x));
+			Assert.Equal([InputBannedReasonEnum.Inherited, InputBannedReasonEnum.RoundDisruptionMethodDidNotSignalReadyToSign], w2.Prison.GetBan(i6, dosConfig).Reasons.OrderBy(x => x));
 
-		await w2.StopAsync(CancellationToken.None);
+			await w2.StopAsync(CancellationToken.None);
+		}
 	}
 }

@@ -48,15 +48,16 @@ public class ArenaClientTests
 	[Fact]
 	public async Task RemoveInputAsyncTestAsync()
 	{
+		var rnd = TestRandom.Get();
 		var config = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(config);
 		round.SetPhase(Phase.ConnectionConfirmation);
-		var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
+		var fundingTx = BitcoinFactory.CreateSmartTransaction(rnd, ownOutputCount: 1);
 		var coin = fundingTx.WalletOutputs.First().Coin;
 		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid(), false);
 		round.Alices.Add(alice);
 
-		using Arena arena = await ArenaTestFactory.From(config).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(config).CreateAndStartAsync(rnd, round);
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
@@ -75,6 +76,7 @@ public class ArenaClientTests
 	[Fact]
 	public async Task SignTransactionAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig config = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		Round round = WabiSabiTestFactory.CreateRound(config);
 		var password = "satoshi";
@@ -85,7 +87,7 @@ public class ArenaClientTests
 
 		var coins = destinationProvider.GetNextDestinations(2, false)
 			.Select(destination => (
-				Coin: new Coin(BitcoinFactory.CreateOutPoint(), new TxOut(Money.Coins(1.0m), destination)),
+				Coin: new Coin(BitcoinFactory.CreateOutPoint(rnd), new TxOut(Money.Coins(1.0m), destination)),
 				OwnershipProof: keyChain.GetOwnershipProof(destination, WabiSabiTestFactory.CreateCommitmentData(round.Id))))
 			.ToArray();
 
@@ -95,7 +97,7 @@ public class ArenaClientTests
 		Alice alice2 = WabiSabiTestFactory.CreateAlice(coins[1].Coin, coins[1].OwnershipProof, round: round);
 		round.Alices.Add(alice2);
 
-		using Arena arena = await ArenaTestFactory.From(config).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(config).CreateAndStartAsync(rnd, round);
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
@@ -150,6 +152,7 @@ public class ArenaClientTests
 
 	private async Task TestFullCoinjoinAsync(ScriptPubKeyType scriptPubKeyType, int inputVirtualSize)
 	{
+		var rnd = TestRandom.Get();
 		var config = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		config.MaxInputCountByRound = 1;
 		config.AllowP2trInputs = true;
@@ -157,8 +160,8 @@ public class ArenaClientTests
 
 		var round = WabiSabiTestFactory.CreateRound(WabiSabiTestFactory.CreateRoundParameters(config));
 		using var key = new Key();
-		var outpoint = BitcoinFactory.CreateOutPoint();
-		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient();
+		var outpoint = BitcoinFactory.CreateOutPoint(rnd);
+		var mockRpc = WabiSabiTestFactory.CreatePreconfiguredRpcClient(rnd);
 		mockRpc.OnGetTxOutAsync = (_, _, _) =>
 			new GetTxOutResponse
 			{
@@ -178,10 +181,10 @@ public class ArenaClientTests
 				MinRelayTxFee = 1
 			});
 		mockRpc.OnGetRawTransactionAsync = (_, _) =>
-			Task.FromResult(BitcoinFactory.CreateTransaction());
+			Task.FromResult(BitcoinFactory.CreateTransaction(rnd));
 
-		using Arena arena = await ArenaTestFactory.From(config).With(mockRpc).CreateAndStartAsync(round);
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+		using Arena arena = await ArenaTestFactory.From(config).With(mockRpc).CreateAndStartAsync(rnd, round);
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(5));
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
@@ -196,7 +199,7 @@ public class ArenaClientTests
 			roundState.CreateVsizeCredentialClient(TestRandom.Wasabi(2)),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
-		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType);
+		var ownershipProof = WabiSabiTestFactory.CreateOwnershipProof(rnd, key, round.Id, scriptPubKeyType);
 
 		var (inputRegistrationResponse, _) = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
 		var aliceId = inputRegistrationResponse.Value;
@@ -225,7 +228,7 @@ public class ArenaClientTests
 			inputRegistrationResponse.IssuedVsizeCredentials,
 			CancellationToken.None);
 
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(5));
 		Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 		// Phase: Connection Confirmation
@@ -267,23 +270,13 @@ public class ArenaClientTests
 		Credential zeroVsizeCred1 = reissuanceResponse.IssuedVsizeCredentials.ElementAt(2);
 		Credential zeroVsizeCred2 = reissuanceResponse.IssuedVsizeCredentials.ElementAt(3);
 
-		await bobArenaClient.RegisterOutputAsync(
-			round.Id,
-			destinationKey1.PubKey.GetScriptPubKey(scriptPubKeyType),
-			new[] { amountCred1, zeroAmountCred1 },
-			new[] { vsizeCred1, zeroVsizeCred1 },
-			CancellationToken.None);
+		await bobArenaClient.RegisterOutputAsync(round.Id, destinationKey1.PubKey.GetScriptPubKey(scriptPubKeyType), [amountCred1, zeroAmountCred1], [vsizeCred1, zeroVsizeCred1], CancellationToken.None);
 
-		await bobArenaClient.RegisterOutputAsync(
-			round.Id,
-			destinationKey2.PubKey.GetScriptPubKey(scriptPubKeyType),
-			new[] { amountCred2, zeroAmountCred2 },
-			new[] { vsizeCred2, zeroVsizeCred2 },
-			CancellationToken.None);
+		await bobArenaClient.RegisterOutputAsync(round.Id, destinationKey2.PubKey.GetScriptPubKey(scriptPubKeyType), [amountCred2, zeroAmountCred2], [vsizeCred2, zeroVsizeCred2], CancellationToken.None);
 
 		await aliceArenaClient.ReadyToSignAsync(round.Id, aliceId, CancellationToken.None);
 
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(5));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
 		var tx = round.Assert<SigningState>().CreateTransaction();

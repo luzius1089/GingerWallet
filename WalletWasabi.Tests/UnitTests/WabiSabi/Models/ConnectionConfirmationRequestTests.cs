@@ -7,6 +7,7 @@ using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -21,7 +22,8 @@ public class ConnectionConfirmationRequestTests
 	[Fact]
 	public void EqualityTest()
 	{
-		uint256 roundId = BitcoinFactory.CreateUint256();
+		var rnd = TestRandom.Get();
+		uint256 roundId = BitcoinFactory.CreateUint256(rnd);
 		Guid guid = Guid.NewGuid();
 
 		// Request #1.
@@ -48,7 +50,7 @@ public class ConnectionConfirmationRequestTests
 
 		// Request #3.
 		ConnectionConfirmationRequest request3 = new(
-			RoundId: BitcoinFactory.CreateUint256(), // Intentionally changed.
+			RoundId: BitcoinFactory.CreateUint256(rnd), // Intentionally changed.
 			AliceId: guid,
 			ZeroAmountCredentialRequests: NewZeroCredentialsRequest(modifier: 1),
 			RealAmountCredentialRequests: NewRealCredentialsRequest(modifier: 1),

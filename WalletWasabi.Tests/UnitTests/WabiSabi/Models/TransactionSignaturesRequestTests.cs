@@ -1,5 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
@@ -13,7 +14,8 @@ public class TransactionSignaturesRequestTests
 	[Fact]
 	public void EqualityTest()
 	{
-		uint256 roundId = BitcoinFactory.CreateUint256();
+		var rnd = TestRandom.Get();
+		uint256 roundId = BitcoinFactory.CreateUint256(rnd);
 
 		using Key key1 = new();
 		using Key key2 = new();
@@ -34,7 +36,7 @@ public class TransactionSignaturesRequestTests
 
 		// Request #3.
 		TransactionSignaturesRequest request3 = new(
-			RoundId: BitcoinFactory.CreateUint256(), // Intentionally changed.
+			RoundId: BitcoinFactory.CreateUint256(rnd), // Intentionally changed.
 			InputIndex: 1,
 			Witness: new WitScript(Op.GetPushOp(key1.PubKey.ToBytes())));
 

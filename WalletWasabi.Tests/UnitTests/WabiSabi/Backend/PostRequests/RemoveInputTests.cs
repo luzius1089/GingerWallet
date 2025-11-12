@@ -1,8 +1,9 @@
+using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.TestCommon;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -16,14 +17,15 @@ public class RemoveInputTests
 	[Fact]
 	public async Task SuccessAsync()
 	{
+		var rnd = TestRandom.Get();
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
 		var round = WabiSabiTestFactory.CreateRound(cfg);
 		var initialRemaining = round.RemainingInputVsizeAllocation;
-		var alice = WabiSabiTestFactory.CreateAlice(round);
+		var alice = WabiSabiTestFactory.CreateAlice(rnd, round);
 		round.Alices.Add(alice);
 		Assert.True(round.RemainingInputVsizeAllocation < initialRemaining);
 
-		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(round);
+		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(rnd, round);
 
 		// There's no such alice yet, so success.
 		var req = new InputsRemovalRequest(round.Id, Guid.NewGuid());
@@ -43,7 +45,7 @@ public class RemoveInputTests
 	[Fact]
 	public async Task RoundNotFoundAsync()
 	{
-		using Arena arena = await ArenaTestFactory.Default.CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.Default.CreateAndStartAsync(TestRandom.Get());
 
 		var req = new InputsRemovalRequest(uint256.Zero, Guid.NewGuid());
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RemoveInputAsync(req, CancellationToken.None));
@@ -56,7 +58,7 @@ public class RemoveInputTests
 	public async Task WrongPhaseAsync()
 	{
 		WabiSabiConfig cfg = WabiSabiTestFactory.CreateDefaultWabiSabiConfig();
-		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync();
+		using Arena arena = await ArenaTestFactory.From(cfg).CreateAndStartAsync(TestRandom.Get());
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = arena.Rounds.First();
 
